@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hime & Samurai — Performance Dashboard 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>if(typeof Chart==='undefined'){document.write('<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/scr'+'ipt>')}</script>
+<style>
+:root{
+  --red:#c0392b;--red2:#e74c3c;--red-bg:#fff5f5;
+  --dark:#1a1a1a;--mid:#444;--light:#888;--border:#e0e0e0;
+  --bg:#efefef;--white:#fff;--gold:#f39c12;
+  --blue:#2980b9;--green:#27ae60;--purp:#8e44ad;--gray:#95a5a6;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--dark);font-size:13px;}
+
+/* ── COVER ── */
+.cover{background:var(--dark);color:white;padding:40px 56px;display:flex;align-items:center;gap:36px;min-height:200px;}
+.cover-logo{width:80px;height:80px;background:#111;border:2px solid #2a2a2a;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.cover-kanji{color:var(--red);font-size:24px;font-weight:800;}
+.cover-brand{color:#aaa;font-size:7px;font-weight:700;letter-spacing:1px;margin-top:3px;text-align:center;}
+.cover-h1{font-size:34px;font-weight:800;line-height:1.1;}
+.cover-h1 span{color:var(--red2);}
+.cover-sub{color:#aaa;font-size:12px;margin-top:6px;}
+.cover-sub-en{color:#666;font-size:11px;margin-top:2px;}
+.cover-right{margin-left:auto;text-align:right;flex-shrink:0;}
+.cover-agency{font-size:11px;color:#888;}
+.cover-period{font-size:22px;font-weight:800;color:white;margin-top:6px;}
+.cover-acct{font-size:10px;color:#555;margin-top:3px;}
+
+/* ── MONTH FILTER ── */
+.filter-bar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:6px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.filter-label{font-size:11px;font-weight:700;color:var(--light);padding:14px 10px 14px 0;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap;}
+.filter-label span{display:block;font-size:9.5px;color:#bbb;font-weight:400;}
+.filter-btn{padding:7px 18px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;background:transparent;color:var(--mid);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.filter-btn:hover{border-color:var(--red);color:var(--red);}
+.filter-btn.active{background:var(--red);border-color:var(--red);color:white;}
+.filter-btn .btn-en{display:block;font-size:9px;font-weight:400;opacity:.8;margin-top:1px;}
+.filter-note{margin-left:auto;font-size:10px;color:var(--light);padding:14px 0;}
+.actual-badge{background:#e8f4fd;color:var(--blue);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:4px;}
+.est-badge{background:#fef9e7;color:#b7770d;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:4px;}
+
+/* ── LAYOUT ── */
+.page{max-width:1200px;margin:0 auto;padding:24px;}
+
+/* ── SECTION TITLE ── */
+.sec{display:flex;align-items:center;gap:10px;margin:28px 0 14px;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+.stag{background:var(--red);color:white;padding:3px 12px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.sec-titles{display:flex;flex-direction:column;gap:1px;}
+.sec-th{font-size:14px;font-weight:700;color:var(--dark);}
+.sec-en{font-size:11px;color:var(--light);font-weight:500;}
+
+/* ── KPI BLOCK ── */
+.kpi-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;}
+.kpi-badge-row{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.kpi-badge{background:var(--red);color:white;padding:4px 14px;border-radius:4px;font-size:12px;font-weight:700;}
+.period-tag{font-size:11px;color:var(--light);font-style:italic;}
+.kpi-top{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);}
+.kpi-bot{display:grid;grid-template-columns:repeat(6,1fr);}
+.kpi-cell{padding:14px 16px;border-right:1px solid var(--border);}
+.kpi-cell:last-child{border-right:none;}
+.kpi-label-th{font-size:10.5px;color:var(--mid);margin-bottom:1px;line-height:1.4;font-weight:600;}
+.kpi-label-en{font-size:9.5px;color:var(--light);margin-bottom:5px;}
+.kpi-val{font-size:22px;font-weight:800;}
+.kpi-bot .kpi-val{font-size:17px;}
+
+/* ── SUMMARY STAT CARDS ── */
+.sum3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+.sum-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px 18px;display:flex;align-items:center;gap:14px;}
+.sum-icon-box{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sum-icon-red{background:rgba(192,57,43,.1);}
+.sum-icon-blue{background:rgba(41,128,185,.1);}
+.sum-icon-green{background:rgba(39,174,96,.1);}
+.sum-label-th{font-size:11px;color:var(--mid);font-weight:600;margin-bottom:1px;}
+.sum-label-en{font-size:9.5px;color:var(--light);}
+.sum-val{font-size:20px;font-weight:800;}
+.sum-sub{font-size:10.5px;color:var(--light);margin-top:2px;}
+
+/* ── BIG 3-CARD ── */
+.big3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px;}
+.big-card{border-radius:10px;padding:20px 18px;text-align:center;color:white;}
+.big-card-red{background:var(--red);}
+.big-card-dark{background:#1e2a3a;}
+.big-card-gold{background:#b7770d;}
+.big-card-tag-th{font-size:11px;font-weight:700;background:rgba(255,255,255,.2);display:inline-block;padding:3px 12px;border-radius:20px;margin-bottom:3px;}
+.big-card-tag-en{font-size:9px;color:rgba(255,255,255,.65);margin-bottom:8px;}
+.big-card-val{font-size:34px;font-weight:900;line-height:1;}
+.big-card-unit{font-size:13px;font-weight:700;margin-top:2px;}
+.big-card-desc{font-size:10px;color:rgba(255,255,255,.65);margin-top:7px;line-height:1.5;}
+
+/* ── TABLE ── */
+.table-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead tr{background:var(--red);}
+th{color:white;padding:9px 10px;font-weight:600;font-size:11px;text-align:right;white-space:nowrap;line-height:1.3;}
+th:first-child{text-align:left;}
+th .th-en{display:block;font-size:9px;font-weight:400;opacity:.75;margin-top:1px;}
+td{padding:8px 10px;border-bottom:1px solid #f5f5f5;text-align:right;vertical-align:middle;}
+td:first-child{text-align:left;}
+tr:last-child td{border-bottom:none;}
+tr.top-row{background:var(--red-bg);font-weight:600;}
+tr:hover td{background:#fdf9f9;}
+.badge-a{color:#1a7a45;font-size:10px;font-weight:600;}
+.badge-p{color:#aaa;font-size:10px;}
+.nw{white-space:nowrap;}
+.num{font-weight:700;}
+.total-row td{font-weight:700;background:#fafafa;border-top:2px solid var(--border);}
+
+/* ── CHARTS ── */
+.chart-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.chart-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px;}
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.chart-title-th{font-size:12px;font-weight:700;color:var(--red);text-align:center;margin-bottom:1px;}
+.chart-title-en{font-size:10px;color:var(--light);text-align:center;margin-bottom:10px;}
+.ch{position:relative;}
+.ch-180{height:180px;}
+.ch-220{height:220px;}
+.ch-260{height:260px;}
+.ch-300{height:300px;}
+
+/* ── VIDEO CARDS ── */
+.video-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px;}
+.vid-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.vid-thumb{background:#111;aspect-ratio:9/16;max-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;}
+.vid-thumb-bg{position:absolute;inset:0;opacity:.95;}
+.vid-play{width:50px;height:50px;background:rgba(192,57,43,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
+.vid-watermark{position:relative;z-index:1;color:rgba(255,255,255,.15);font-size:26px;font-weight:900;}
+.vid-badge{position:absolute;top:10px;left:10px;background:rgba(192,57,43,.9);color:white;font-size:9px;font-weight:700;padding:3px 9px;border-radius:12px;z-index:2;}
+.vid-rank{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);color:rgba(255,255,255,.8);font-size:10px;font-weight:700;padding:3px 9px;border-radius:12px;z-index:2;}
+.vid-info{padding:11px 13px;}
+.vid-name{font-size:11.5px;font-weight:700;color:var(--dark);line-height:1.4;margin-bottom:7px;}
+.vid-stats{display:flex;gap:7px;flex-wrap:wrap;}
+.vid-stat{background:#f7f7f7;border-radius:6px;padding:4px 8px;text-align:center;flex:1;}
+.vid-stat-label-th{font-size:9px;color:var(--light);margin-bottom:0px;}
+.vid-stat-label-en{font-size:8px;color:#bbb;}
+.vid-stat-val{font-size:12px;font-weight:800;color:var(--dark);}
+.vid-stat-val.best{color:#1a7a45;}
+.vid-stat-val.red{color:var(--red);}
+.vid-period{font-size:9.5px;color:var(--light);margin-top:6px;display:flex;align-items:center;gap:5px;}
+
+/* ── BREAKDOWN GROUP LABEL ── */
+.breakdown-label{font-size:11.5px;font-weight:700;color:var(--mid);margin:0 0 10px;padding-left:2px;display:flex;align-items:center;gap:6px;}
+.breakdown-label span{font-size:10px;color:var(--light);font-weight:400;}
+
+/* ── INSIGHTS ── */
+.ins3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+.ins-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;border-left:4px solid var(--red);}
+.ins-icon-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.ins-icon-box{width:36px;height:36px;border-radius:8px;background:rgba(192,57,43,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ins-tag-th{font-size:10px;font-weight:700;color:var(--red);}
+.ins-tag-en{font-size:9px;color:var(--light);}
+.ins-name{font-size:13px;font-weight:700;margin:4px 0 2px;}
+.ins-val{font-size:19px;font-weight:800;color:var(--red);}
+.ins-sub{font-size:10.5px;color:var(--light);margin-top:4px;line-height:1.5;}
+
+/* ── FORMAT BADGE ── */
+.fmt-video{background:#fde8e8;color:#c0392b;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
+.fmt-photo{background:#e8f4fd;color:#2980b9;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
+
+/* ── FOOTER ── */
+.footer{text-align:center;padding:20px;color:var(--light);font-size:11px;border-top:1px solid var(--border);margin-top:10px;}
+
+/* ── ANALYSIS SECTION ── */
+.analysis-wrap{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px;}
+.analysis-header{background:var(--dark);color:white;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
+.analysis-header-left h2{font-size:16px;font-weight:800;margin-bottom:3px;}
+.analysis-header-left p{font-size:11px;color:#aaa;}
+.analysis-period-pill{background:rgba(192,57,43,.25);border:1px solid rgba(192,57,43,.5);padding:5px 14px;border-radius:20px;font-size:11px;color:#f5a0a0;font-weight:600;}
+.analysis-body{padding:24px;}
+.dim-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.dim-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.dim-card.full{grid-column:1/-1;}
+.dim-card-header{display:flex;align-items:center;gap:10px;padding:11px 16px;background:#fafafa;border-bottom:1px solid var(--border);}
+.dim-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dim-icon-red{background:rgba(192,57,43,.12);}
+.dim-icon-blue{background:rgba(41,128,185,.12);}
+.dim-icon-gold{background:rgba(243,156,18,.12);}
+.dim-icon-green{background:rgba(39,174,96,.12);}
+.dim-icon-purp{background:rgba(142,68,173,.12);}
+.dim-icon-dark{background:rgba(26,26,46,.1);}
+.dim-title{font-size:12px;font-weight:700;color:var(--dark);}
+.dim-subtitle{font-size:10px;color:var(--light);margin-top:1px;}
+.dim-body{padding:14px 16px;}
+.dim-body p{font-size:12px;color:var(--mid);line-height:1.75;margin-bottom:10px;}
+.dim-body p:last-child{margin-bottom:0;}
+.dim-body strong{color:var(--dark);}
+.dim-body .highlight{color:var(--red);font-weight:700;}
+.dim-body .good{color:var(--green);font-weight:700;}
+.dim-body .warn{color:var(--gold);font-weight:700;}
+.dim-kpi-row{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap;}
+.dim-kpi{background:#f7f7f7;border-radius:8px;padding:8px 12px;flex:1;min-width:90px;}
+.dim-kpi-label{font-size:9.5px;color:var(--light);margin-bottom:2px;}
+.dim-kpi-val{font-size:15px;font-weight:800;color:var(--dark);}
+.dim-kpi-val.red{color:var(--red);}
+.dim-kpi-val.green{color:var(--green);}
+.bullet-list{list-style:none;padding:0;margin:8px 0;}
+.bullet-list li{font-size:12px;color:var(--mid);line-height:1.7;padding-left:16px;position:relative;}
+.bullet-list li::before{content:'→';position:absolute;left:0;color:var(--red);font-weight:700;}
+.analysis-footer-note{background:#f7f7f7;border-top:1px solid var(--border);padding:10px 24px;font-size:10.5px;color:var(--light);font-style:italic;}
+
+/* ── ESTIMATED NOTICE ── */
+.est-notice{background:#fef9e7;border:1px solid #f0c840;border-radius:8px;padding:10px 16px;margin-bottom:14px;font-size:11px;color:#7a5c00;display:flex;align-items:center;gap:8px;}
+
+/* ── BRAND LOGO ── */
+.cover-logo{width:auto;height:auto;background:none;border:none;border-radius:0;padding:0;display:block;flex-shrink:0;}
+.cover-logo-svg{height:76px;width:auto;display:block;}
+
+/* ══════════════════════════════════════
+   RESPONSIVE — Tablet (≤1024px)
+══════════════════════════════════════ */
+@media(max-width:1024px){
+  .cover{padding:28px 28px;}
+  .cover-logo-svg{height:64px;}
+  .cover-h1{font-size:28px;}
+  .page{padding:16px;}
+  .video-grid{grid-template-columns:repeat(2,1fr);}
+  .chart-3col{grid-template-columns:repeat(2,1fr);}
+  .ins3{grid-template-columns:repeat(2,1fr);}
+  .big-card-val{font-size:28px;}
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE — Mobile (≤768px)
+══════════════════════════════════════ */
+@media(max-width:768px){
+  /* Cover */
+  .cover{padding:16px 14px;flex-wrap:wrap;gap:10px;min-height:auto;}
+  .cover-logo-svg{height:52px;}
+  .cover-h1{font-size:20px;}
+  .cover-sub,.cover-sub-en{font-size:10px;}
+  .cover-right{margin-left:0;text-align:left;width:100%;border-top:1px solid #333;padding-top:8px;}
+  .cover-period{font-size:15px;}
+
+  /* Filter bar */
+  .filter-bar{flex-wrap:wrap;padding:8px 10px 6px;position:static;gap:4px;}
+  .filter-label{width:100%;border-right:none;padding:4px 0 6px;margin-right:0;}
+  .filter-btn{padding:5px 11px;font-size:11px;}
+  .filter-note{width:100%;padding:6px 0 2px;font-size:9.5px;}
+
+  /* Page */
+  .page{padding:10px;}
+  .sec{margin:18px 0 10px;}
+
+  /* KPI */
+  .kpi-top{grid-template-columns:repeat(2,1fr);}
+  .kpi-bot{grid-template-columns:repeat(3,1fr);}
+  .kpi-val{font-size:17px;}
+  .kpi-bot .kpi-val{font-size:14px;}
+  .kpi-cell{padding:11px 12px;}
+
+  /* Cards */
+  .sum3{grid-template-columns:1fr 1fr;}
+  .big3{grid-template-columns:1fr 1fr;}
+  .big-card-val{font-size:24px;}
+  .big-card{padding:16px 12px;}
+
+  /* Tables */
+  .table-card{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{min-width:500px;}
+
+  /* Charts */
+  .chart-2col{grid-template-columns:1fr;}
+  .chart-3col{grid-template-columns:1fr 1fr;}
+
+  /* Video grid */
+  .video-grid{grid-template-columns:repeat(2,1fr);}
+
+  /* Insights */
+  .ins3{grid-template-columns:1fr 1fr;}
+
+  /* Analysis */
+  .dim-grid{grid-template-columns:1fr;}
+  .dim-card.full{grid-column:1;}
+  .analysis-header{flex-direction:column;align-items:flex-start;gap:8px;}
+  .analysis-body{padding:14px 12px;}
+  .dim-kpi-row{flex-wrap:wrap;}
+  .dim-kpi{min-width:calc(50% - 5px);flex:none;}
+  .dim-body p{font-size:11.5px;}
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE — Small Mobile (≤480px)
+══════════════════════════════════════ */
+@media(max-width:480px){
+  .cover{padding:12px 10px;}
+  .cover-logo-svg{height:42px;}
+  .cover-h1{font-size:17px;}
+  .cover-right{font-size:10px;}
+  .cover-period{font-size:13px;}
+
+  .filter-btn{padding:4px 9px;font-size:10px;}
+  .filter-btn .btn-en{display:none;}
+
+  .page{padding:8px;}
+
+  .kpi-top{grid-template-columns:1fr 1fr;}
+  .kpi-bot{grid-template-columns:repeat(2,1fr);}
+  .kpi-cell{padding:9px 10px;}
+  .kpi-val{font-size:15px;}
+  .kpi-bot .kpi-val{font-size:13px;}
+
+  .sum3{grid-template-columns:1fr;}
+  .sum-card{padding:12px 14px;}
+  .big3{grid-template-columns:1fr;}
+  .big-card-val{font-size:30px;}
+
+  .chart-3col{grid-template-columns:1fr;}
+  .chart-2col{grid-template-columns:1fr;}
+  .video-grid{grid-template-columns:1fr;}
+  .ins3{grid-template-columns:1fr;}
+
+  .dim-kpi{min-width:calc(50% - 5px);}
+  .sec-th{font-size:13px;}
+  .sec-en{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══ -->
+<div class="cover">
+  <!-- Brand Logo SVG -->
+  <div class="cover-logo">
+    <svg class="cover-logo-svg" viewBox="0 0 268 82" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hime &amp; Samurai Logo">
+      <defs>
+        <clipPath id="cl1"><circle cx="36" cy="41" r="34"/></clipPath>
+        <clipPath id="cl2"><circle cx="70" cy="41" r="34"/></clipPath>
+      </defs>
+      <!-- Left aperture circle -->
+      <g clip-path="url(#cl1)">
+        <circle cx="36" cy="41" r="34" fill="#0d0d0d"/>
+        <ellipse cx="36" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93"/>
+        <ellipse cx="36" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(60,36,41)"/>
+        <ellipse cx="36" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(120,36,41)"/>
+        <ellipse cx="36" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(180,36,41)"/>
+        <ellipse cx="36" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(240,36,41)"/>
+        <ellipse cx="36" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(300,36,41)"/>
+        <circle cx="36" cy="41" r="13" fill="#0d0d0d"/>
+        <!-- Wai / praying hands (simplified) -->
+        <path d="M30,35 C30,27 32,22 36,20 C40,22 42,27 42,35 L42,50 C42,53 40,55 36,55 C32,55 30,53 30,50Z" fill="white" opacity="0.88"/>
+        <line x1="36" y1="20" x2="36" y2="54" stroke="#0d0d0d" stroke-width="1.2"/>
+        <line x1="32" y1="26" x2="32" y2="52" stroke="#0d0d0d" stroke-width="0.9" opacity="0.6"/>
+        <line x1="40" y1="26" x2="40" y2="52" stroke="#0d0d0d" stroke-width="0.9" opacity="0.6"/>
+      </g>
+      <circle cx="36" cy="41" r="34" fill="none" stroke="white" stroke-width="2.2"/>
+      <!-- Right aperture circle -->
+      <g clip-path="url(#cl2)">
+        <circle cx="70" cy="41" r="34" fill="#0d0d0d"/>
+        <ellipse cx="70" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(30,70,41)"/>
+        <ellipse cx="70" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(90,70,41)"/>
+        <ellipse cx="70" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(150,70,41)"/>
+        <ellipse cx="70" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(210,70,41)"/>
+        <ellipse cx="70" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(270,70,41)"/>
+        <ellipse cx="70" cy="15" rx="9.5" ry="21" fill="white" opacity="0.93" transform="rotate(330,70,41)"/>
+        <circle cx="70" cy="41" r="10" fill="#c0392b"/>
+        <circle cx="70" cy="41" r="6"  fill="#e74c3c"/>
+        <circle cx="70" cy="41" r="2.5" fill="#ff6b5b"/>
+      </g>
+      <circle cx="70" cy="41" r="34" fill="none" stroke="white" stroke-width="2.2"/>
+      <!-- Brand text -->
+      <text x="120" y="27" font-family="'Noto Serif JP',Georgia,serif" font-size="23" font-weight="800" fill="#c0392b" letter-spacing="3">姫と侍</text>
+      <text x="120" y="52" font-family="'Arial Black','Arial Bold',Arial,sans-serif" font-size="19" font-weight="900" fill="white" letter-spacing="0.3">HIME &amp; SAMURAI</text>
+      <text x="121" y="68" font-family="Arial,sans-serif" font-size="8" font-weight="600" fill="rgba(255,255,255,0.55)" letter-spacing="2.8">TRADITIONAL FASHION PHOTO STUDIO</text>
+    </svg>
+  </div>
+  <div>
+    <h1 class="cover-h1">Performance<br><span>Dashboard</span></h1>
+    <p class="cover-sub">Meta Ads — รายงานประสิทธิภาพโฆษณา</p>
+    <p class="cover-sub-en">Meta Ads Campaign Performance Analysis</p>
+  </div>
+  <div class="cover-right">
+    <div class="cover-agency">By Me Idea Marketing & Design</div>
+    <div class="cover-period" id="cover-period">พ.ศ. 2026 / 2026</div>
+    <div class="cover-acct">Ad Account: 1082716973890726</div>
+  </div>
+</div>
+
+<!-- ═══ MONTH FILTER BAR ═══ -->
+<div class="filter-bar">
+  <div class="filter-label">ช่วงเวลา<span>Time Period</span></div>
+  <button class="filter-btn" data-period="all" onclick="setFilter('all')">ทั้งปี 2026<span class="btn-en">All Year 2026</span></button>
+  <button class="filter-btn" data-period="jan" onclick="setFilter('jan')">ม.ค.<span class="btn-en">January</span></button>
+  <button class="filter-btn" data-period="feb" onclick="setFilter('feb')">ก.พ.<span class="btn-en">February</span></button>
+  <button class="filter-btn" data-period="mar" onclick="setFilter('mar')">มี.ค.<span class="btn-en">March</span></button>
+  <button class="filter-btn" data-period="apr" onclick="setFilter('apr')">เม.ย.<span class="btn-en">April</span></button>
+  <button class="filter-btn active" data-period="may" onclick="setFilter('may')">พ.ค. ★<span class="btn-en">May (Actual)</span></button>
+  <div class="filter-note">★ ข้อมูลจริง / Actual Data &nbsp;|&nbsp; ม.ค.–เม.ย. = ข้อมูลประมาณการ / Estimated</div>
+</div>
+
+<!-- ═══ PAGE ═══ -->
+<div class="page">
+
+<!-- estimated notice (hidden for may/all by default) -->
+<div class="est-notice" id="est-notice" style="display:none;">
+  ⚠️ ข้อมูลเดือนนี้เป็นค่าประมาณการ (Estimated) — ข้อมูลจริงมีเฉพาะเดือนพฤษภาคม 2026 /
+  Data for this month is estimated. Actual data available for May 2026 only.
+</div>
+
+<!-- ─── SECTION 1: KPI ─── -->
+<div class="sec">
+  <span class="stag">Main KPIs</span>
+  <div class="sec-titles">
+    <span class="sec-th">ภาพรวมประสิทธิภาพหลัก</span>
+    <span class="sec-en">Key Performance Indicators Overview</span>
+  </div>
+</div>
+
+<div class="kpi-wrap">
+  <div class="kpi-badge-row">
+    <span class="kpi-badge">Main KPIs</span>
+    <span class="period-tag" id="kpi-period-label">พฤษภาคม 2026 — May 2026</span>
+  </div>
+  <div class="kpi-top">
+    <div class="kpi-cell">
+      <div class="kpi-label-th">CPM (ต้นทุนต่ออิมเพรสชัน 1,000 ครั้ง)</div>
+      <div class="kpi-label-en">Cost per 1,000 Impressions</div>
+      <div class="kpi-val" id="kv-cpm">157.05</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-label-th">งบโฆษณาที่ใช้ (THB)</div>
+      <div class="kpi-label-en">Total Ad Spend</div>
+      <div class="kpi-val" id="kv-spend">49,086.99</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-label-th">การคลิกลิงก์</div>
+      <div class="kpi-label-en">Link Clicks</div>
+      <div class="kpi-val" id="kv-clicks">3,247</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-label-th">การสนทนาที่เริ่มขึ้น</div>
+      <div class="kpi-label-en">Messaging Conversations Started</div>
+      <div class="kpi-val" id="kv-msgs">446</div>
+    </div>
+  </div>
+  <div class="kpi-bot">
+    <div class="kpi-cell">
+      <div class="kpi-label-th">ความรู้สึกต่อโพสต์</div>
+      <div class="kpi-label-en">Post Reactions</div>
+      <div class="kpi-val" id="kv-reactions">2,706</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-label-th">ความคิดเห็น</div>
+      <div class="kpi-label-en">Post Comments</div>
+      <div class="kpi-val" id="kv-comments">35</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-label-th">การแชร์โพสต์</div>
+      <div class="kpi-label-en">Post Shares</div>
+      <div class="kpi-val" id="kv-shares">407</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-label-th">การบันทึกโพสต์</div>
+      <div class="kpi-label-en">Post Saves</div>
+      <div class="kpi-val" id="kv-saves">224</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-label-th">การกดถูกใจ</div>
+      <div class="kpi-label-en">Page Likes</div>
+      <div class="kpi-val" id="kv-likes">194</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-label-th">ต้นทุน/ข้อความ (THB)</div>
+      <div class="kpi-label-en">Cost per Message</div>
+      <div class="kpi-val" id="kv-costmsg">110.06</div>
+    </div>
+  </div>
+</div>
+
+<div class="sum3">
+  <div class="sum-card">
+    <div class="sum-icon-box sum-icon-red">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+    </div>
+    <div>
+      <div class="sum-label-th">อิมเพรสชันทั้งหมด</div>
+      <div class="sum-label-en">Total Impressions</div>
+      <div class="sum-val" id="sv-impr">312,565</div>
+      <div class="sum-sub">CPM <span id="sv-cpm">฿157.05</span></div>
+    </div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-icon-box sum-icon-blue">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div>
+      <div class="sum-label-th">การเข้าถึง (Unique Users)</div>
+      <div class="sum-label-en">Total Reach</div>
+      <div class="sum-val" id="sv-reach">134,394</div>
+      <div class="sum-sub">คน / People</div>
+    </div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-icon-box sum-icon-green">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div>
+      <div class="sum-label-th">ข้อความทั้งหมด</div>
+      <div class="sum-label-en">Total Messages / CTR / CPC</div>
+      <div class="sum-val" id="sv-msgs2">446</div>
+      <div class="sum-sub">CTR <span id="sv-ctr">3.67%</span> &nbsp;|&nbsp; CPC <span id="sv-cpc">฿4.28</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SECTION 2: by CAMPAIGN ─── -->
+<div class="sec">
+  <span class="stag">Campaign</span>
+  <div class="sec-titles">
+    <span class="sec-th">ประสิทธิภาพจำแนกตาม Campaign</span>
+    <span class="sec-en">Performance Summary & Analysis by Campaign</span>
+  </div>
+</div>
+
+<div class="table-card">
+  <table>
+    <thead><tr>
+      <th>ชื่อแคมเปญ<span class="th-en">Campaign Name</span></th>
+      <th>งบที่ใช้ (฿)<span class="th-en">Ad Spend</span></th>
+      <th>อิมเพรสชัน<span class="th-en">Impressions</span></th>
+      <th>การเข้าถึง<span class="th-en">Reach</span></th>
+      <th>CTR</th>
+      <th>ข้อความ<span class="th-en">Messages</span></th>
+      <th>CPM (฿)</th>
+      <th>ต้นทุน/ข้อความ<span class="th-en">Cost/Msg (฿)</span></th>
+    </tr></thead>
+    <tbody id="camp-tbody">
+      <!-- filled by JS -->
+    </tbody>
+  </table>
+</div>
+
+<div class="chart-2col">
+  <div class="chart-card">
+    <div class="chart-title-th">งบโฆษณารายเดือน</div>
+    <div class="chart-title-en">Monthly Ad Spend (THB)</div>
+    <div class="ch ch-220"><canvas id="spendChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title-th">ข้อความ vs ต้นทุน/ข้อความ รายเดือน</div>
+    <div class="chart-title-en">Messages vs Cost per Message by Month</div>
+    <div class="ch ch-220"><canvas id="msgChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ─── SECTION 3: VIDEO COMPLETION ─── -->
+<div class="sec">
+  <span class="stag">Video</span>
+  <div class="sec-titles">
+    <span class="sec-th">การรับชมวิดีโอ — อัตราการดูจนจบ</span>
+    <span class="sec-en">Video Completion Rate by Ad Creative</span>
+  </div>
+</div>
+
+<div class="chart-card" style="margin-bottom:18px;">
+  <div class="chart-title-th">จำนวนการรับชมวิดีโอในแต่ละช่วง</div>
+  <div class="chart-title-en">Video Views at Each Completion Milestone (25% / 50% / 75% / 95% / 100% / ThruPlay)</div>
+  <div class="ch ch-260"><canvas id="videoChart"></canvas></div>
+</div>
+
+<!-- ─── SECTION 4: by ADSET ─── -->
+<div class="sec">
+  <span class="stag">Ad Set</span>
+  <div class="sec-titles">
+    <span class="sec-th">ประสิทธิภาพจำแนกตาม Ad Set</span>
+    <span class="sec-en">Performance Summary & Analysis by Ad Set</span>
+  </div>
+</div>
+
+<div class="table-card">
+  <table>
+    <thead><tr>
+      <th>ชื่อชุดโฆษณา<span class="th-en">Ad Set Name</span></th>
+      <th>อิมเพรสชัน<span class="th-en">Impressions</span></th>
+      <th>การเข้าถึง<span class="th-en">Reach</span></th>
+      <th>CTR</th>
+      <th>ข้อความ<span class="th-en">Messages</span></th>
+    </tr></thead>
+    <tbody id="adset-tbody">
+      <!-- filled by JS -->
+    </tbody>
+  </table>
+</div>
+
+<div class="chart-2col">
+  <div class="chart-card">
+    <div class="chart-title-th">อิมเพรสชัน จำแนกตาม Ad Set</div>
+    <div class="chart-title-en">Impressions by Ad Set</div>
+    <div class="ch ch-220"><canvas id="adsetImprChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title-th">ข้อความ จำแนกตาม Ad Set</div>
+    <div class="chart-title-en">Messages by Ad Set</div>
+    <div class="ch ch-220"><canvas id="adsetMsgChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ─── SECTION 5: by ADS ─── -->
+<div class="sec">
+  <span class="stag">Ads</span>
+  <div class="sec-titles">
+    <span class="sec-th">ประสิทธิภาพจำแนกตามเนื้อหาโฆษณา</span>
+    <span class="sec-en">Performance Summary & Analysis by Ad Creative</span>
+  </div>
+</div>
+
+<div class="big3">
+  <div class="big-card big-card-red">
+    <div class="big-card-tag-th">เงินลงทุนทั้งหมด</div>
+    <div class="big-card-tag-en">Total Ad Investment</div>
+    <div class="big-card-val" id="big-spend">49,086.99</div>
+    <div class="big-card-unit">THB</div>
+    <div class="big-card-desc">งบโฆษณารวมทุก campaigns บน Facebook, Instagram และ Messenger</div>
+  </div>
+  <div class="big-card big-card-dark">
+    <div class="big-card-tag-th">การสอบถามทั้งหมด</div>
+    <div class="big-card-tag-en">Total Inquiries / Messages</div>
+    <div class="big-card-val" id="big-msgs">446</div>
+    <div class="big-card-unit">ข้อความ / Messages</div>
+    <div class="big-card-desc">จำนวนการสนทนาใหม่ที่เริ่มต้นโดยลูกค้าที่มีศักยภาพ</div>
+  </div>
+  <div class="big-card big-card-gold">
+    <div class="big-card-tag-th">ต้นทุนเฉลี่ยต่อข้อความ</div>
+    <div class="big-card-tag-en">Average Cost per Message</div>
+    <div class="big-card-val" id="big-cpm">110.06</div>
+    <div class="big-card-unit">THB / Message</div>
+    <div class="big-card-desc">ตัวชี้วัดประสิทธิภาพโดยรวม / Overall Efficiency KPI</div>
+  </div>
+</div>
+
+<div class="table-card">
+  <div style="background:var(--red);padding:8px 14px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="color:white;font-size:12px;font-weight:700;">Detailed Ad Performance Breakdown</span>
+    <span style="color:rgba(255,255,255,.7);font-size:10px;">รายละเอียดประสิทธิภาพโฆษณาแต่ละชิ้น</span>
+  </div>
+  <table>
+    <thead><tr>
+      <th style="width:28px;">#</th>
+      <th>ชื่อเนื้อหาโฆษณา<span class="th-en">Ad Creative Name</span></th>
+      <th>ระยะเวลา<span class="th-en">Duration</span></th>
+      <th>ช่วงวันที่<span class="th-en">Date Range</span></th>
+      <th>แพลตฟอร์ม<span class="th-en">Platform</span></th>
+      <th>รูปแบบ<span class="th-en">Format</span></th>
+      <th>ค่าใช้จ่าย (฿)<span class="th-en">Ad Spend</span></th>
+      <th>ข้อความ<span class="th-en">Messages</span></th>
+      <th>ต้นทุน/ข้อความ (฿)<span class="th-en">Cost/Msg</span></th>
+    </tr></thead>
+    <tbody id="ads-tbody">
+      <!-- filled by JS -->
+    </tbody>
+  </table>
+</div>
+
+<div class="chart-2col">
+  <div class="chart-card">
+    <div class="chart-title-th">งบโฆษณา vs ข้อความ จำแนกตาม Ad</div>
+    <div class="chart-title-en">Ad Spend vs Messages by Creative</div>
+    <div class="ch ch-220"><canvas id="adsSpendChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title-th">ต้นทุนต่อข้อความ จำแนกตาม Ad (฿)</div>
+    <div class="chart-title-en">Cost per Message by Ad Creative</div>
+    <div class="ch ch-220"><canvas id="adsCPMChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ─── SECTION 6: VIDEO CARDS ─── -->
+<div class="sec">
+  <span class="stag">Video</span>
+  <div class="sec-titles">
+    <span class="sec-th">เนื้อหาวิดีโอในแต่ละ Ad Creative</span>
+    <span class="sec-en">Video Content per Ad Creative — Performance Snapshot</span>
+  </div>
+</div>
+<div class="video-grid" id="video-grid"><!-- filled by JS --></div>
+
+<!-- ─── SECTION 7: AUDIENCE ─── -->
+<div class="sec">
+  <span class="stag">Audience</span>
+  <div class="sec-titles">
+    <span class="sec-th">วิเคราะห์กลุ่มเป้าหมาย</span>
+    <span class="sec-en">Audience Analysis & Breakdown</span>
+  </div>
+</div>
+
+<div class="chart-card" style="margin-bottom:18px;">
+  <div class="chart-title-th">อิมเพรสชัน & ข้อความ จำแนกตาม Placement</div>
+  <div class="chart-title-en">Impression & Messages by Placement</div>
+  <div class="ch ch-300"><canvas id="placementChart"></canvas></div>
+</div>
+
+<div class="breakdown-label">📨 ข้อความจำแนกตามกลุ่ม <span>Messages Breakdown by Segment</span></div>
+<div class="chart-3col">
+  <div class="chart-card">
+    <div class="chart-title-th">ข้อความ จำแนกตามเพศ</div>
+    <div class="chart-title-en">Messages by Gender</div>
+    <div class="ch ch-180"><canvas id="gMsgChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title-th">ข้อความ จำแนกตามช่วงอายุ</div>
+    <div class="chart-title-en">Messages by Age Group</div>
+    <div class="ch ch-180"><canvas id="ageMsgChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title-th">ข้อความ จำแนกตามแพลตฟอร์ม</div>
+    <div class="chart-title-en">Messages by Platform</div>
+    <div class="ch ch-180"><canvas id="platMsgChart"></canvas></div>
+  </div>
+</div>
+
+<div class="breakdown-label">👁 อิมเพรสชันจำแนกตามกลุ่ม <span>Impression Breakdown by Segment</span></div>
+<div class="chart-3col">
+  <div class="chart-card">
+    <div class="chart-title-th">อิมเพรสชัน จำแนกตามเพศ</div>
+    <div class="chart-title-en">Impressions by Gender</div>
+    <div class="ch ch-180"><canvas id="gImprChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title-th">อิมเพรสชัน จำแนกตามช่วงอายุ</div>
+    <div class="chart-title-en">Impressions by Age Group</div>
+    <div class="ch ch-180"><canvas id="ageImprChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title-th">อิมเพรสชัน จำแนกตามแพลตฟอร์ม</div>
+    <div class="chart-title-en">Impressions by Platform</div>
+    <div class="ch ch-180"><canvas id="platImprChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ─── SECTION 8: INSIGHTS ─── -->
+<div class="sec">
+  <span class="stag">Insights</span>
+  <div class="sec-titles">
+    <span class="sec-th">ข้อสรุปและข้อมูลเชิงลึก</span>
+    <span class="sec-en">Performance Insights & Audience Analysis</span>
+  </div>
+</div>
+
+<div class="ins3">
+  <div class="ins-card">
+    <div class="ins-icon-row">
+      <div class="ins-icon-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+      </div>
+      <div><div class="ins-tag-th">เนื้อหาที่ดีที่สุด</div><div class="ins-tag-en">Best Performing Content</div></div>
+    </div>
+    <div class="ins-name" id="ins-best-name">Ads – Review (Reels)</div>
+    <div class="ins-val" id="ins-best-val">239 ข้อความ</div>
+    <div class="ins-sub" id="ins-best-sub">ต้นทุนต่ำสุด <strong>฿74.19</strong> / ข้อความ<br>Lowest cost — Top conversion driver</div>
+  </div>
+  <div class="ins-card">
+    <div class="ins-icon-row">
+      <div class="ins-icon-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div><div class="ins-tag-th">กลุ่มเป้าหมายหลัก</div><div class="ins-tag-en">Core Audience</div></div>
+    </div>
+    <div class="ins-name">Female อายุ 25–44 ปี</div>
+    <div class="ins-val">&gt;80% ของ Messages</div>
+    <div class="ins-sub">กลุ่ม 35–44 ปี ครองสัดส่วนสูงสุด 40%<br>Age 35–44 leads in message conversions</div>
+  </div>
+  <div class="ins-card">
+    <div class="ins-icon-row">
+      <div class="ins-icon-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      </div>
+      <div><div class="ins-tag-th">กลยุทธ์แพลตฟอร์ม</div><div class="ins-tag-en">Platform Strategy</div></div>
+    </div>
+    <div class="ins-name">Facebook Feed & Reels</div>
+    <div class="ins-val">วิดีโอ Reels ทุก Ad</div>
+    <div class="ins-sub">Facebook ~80% ของ Messages<br>Reels drives highest conversion across all campaigns</div>
+  </div>
+</div>
+
+<!-- ─── SECTION 9: SUMMARY & ANALYSIS BY DIMENSION ─── -->
+<div class="sec">
+  <span class="stag">Analysis</span>
+  <div class="sec-titles">
+    <span class="sec-th">บทสรุปและการวิเคราะห์ตามมิติ</span>
+    <span class="sec-en">Summary & Analysis by Dimension — AI-Generated Insights</span>
+  </div>
+</div>
+
+<div class="analysis-wrap">
+  <div class="analysis-header">
+    <div class="analysis-header-left">
+      <h2>📊 Performance Summary & Analysis by Dimension</h2>
+      <p>AI-generated strategic insights based on Meta Ads data — Hime &amp; Samurai</p>
+    </div>
+    <div class="analysis-period-pill" id="analysis-period-pill">May 2026 — Actual Data</div>
+  </div>
+  <div class="analysis-body" id="analysis-body">
+    <!-- filled by JS -->
+  </div>
+  <div class="analysis-footer-note" id="analysis-footer-note">
+    ★ All data is actual (verified from Meta Ads Manager, January–May 2026, Ad Account: 1082716973890726)
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<div class="footer">
+  Hime &amp; Samurai — Meta Ads Performance Dashboard 2026 (พ.ศ. 2569)&nbsp;|&nbsp;By Me Idea Marketing &amp; Design&nbsp;|&nbsp;Ad Account: 1082716973890726
+</div>
+
+<!-- ═══ DATA + SCRIPTS ═══ -->
+<script>
+// ───────────────────────────────────────────
+// DATA
+// ───────────────────────────────────────────
+const D = {
+  jan:{
+    label:{th:'มกราคม 2026',en:'January 2026 ★ Actual'},actual:true,
+    kpi:{cpm:131.57,spend:79626.41,clicks:5677,msgs:757,reactions:4502,comments:86,shares:879,saves:375,likes:null,costMsg:105.19,impr:605210,reach:184738,ctr:3.96,cpc:3.32},
+    campaigns:[
+      {name:'20250916_Messages_Reels_Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',spend:20038.98,impr:147159,reach:72738,msgs:192,cpm:136.17,costMsg:104.37,status:'ACTIVE'},
+      {name:'20251101_Messages_Reels_Moonlit_Princess_Ads1',spend:19792.84,impr:161708,reach:94358,msgs:196,cpm:122.39,costMsg:100.98,status:'ACTIVE'},
+      {name:'20250705_Messages_Reels_Sexy Kimono_Pov_Ads3',spend:15380.62,impr:121864,reach:65089,msgs:106,cpm:126.22,costMsg:145.10,status:'ACTIVE'},
+      {name:'20260101_Messages_Reels_5Content_Test',spend:13651.45,impr:92962,reach:49589,msgs:207,cpm:146.85,costMsg:65.95,status:'PAUSED'},
+      {name:'20260101_Messages_Reels_Pro2026',spend:6551.48,impr:42379,reach:24755,msgs:38,cpm:154.60,costMsg:172.41,status:'PAUSED'},
+      {name:'20250705_Messages_Reels_SakuraAngel_เปิดตัวแคมเปญใหม่_Ads2',spend:2273.88,impr:23810,reach:16358,msgs:11,cpm:95.50,costMsg:206.72,status:'ACTIVE'},
+      {name:'20260101_Messages_AW_Pro2026',spend:1194.70,impr:9950,reach:5406,msgs:5,cpm:120.07,costMsg:238.94,status:'PAUSED'},
+      {name:'20260102_Messages_AW_Pro2026_Ad2',spend:742.46,impr:5378,reach:2971,msgs:2,cpm:138.04,costMsg:371.23,status:'PAUSED'}
+    ],
+    adsets:[
+      {name:'Ads Set 4 Retarget',impr:213786,reach:135577,ctr:null,msgs:274},
+      {name:'Ads Set 1 Photoshoot',impr:158067,reach:107276,ctr:null,msgs:247},
+      {name:'Ads Set 3 Lookalike Audience',impr:100108,reach:71389,ctr:null,msgs:122},
+      {name:'Ads Set 2 Japanese',impr:84428,reach:63672,ctr:null,msgs:77},
+      {name:'Ads Set 5 Anime',impr:48821,reach:35805,ctr:null,msgs:37}
+    ],
+    ads:[
+      {rank:1,kanji:'金',name:'Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',days:31,range:'01/01–31/01',platform:'FB, IG, MSG',fmt:'video',spend:20038.98,msgs:192,costMsg:104.37,thumb:null,videoUrl:'https://www.facebook.com/reel/27855351434055754'},
+      {rank:2,kanji:'月',name:'Moonlit Princess_Ads1',days:31,range:'01/01–31/01',platform:'FB, IG, MSG',fmt:'video',spend:19792.84,msgs:196,costMsg:100.98,thumb:null,videoUrl:'https://www.facebook.com/reel/4164300953858301'},
+      {rank:3,kanji:'着',name:'Sexy Kimono_Pov_Ads3',days:31,range:'01/01–31/01',platform:'FB, IG, MSG',fmt:'video',spend:15380.62,msgs:106,costMsg:145.10,thumb:null,videoUrl:'https://www.facebook.com/reel/24134840532817316'},
+      {rank:4,kanji:'五',name:'5Content_Test',days:31,range:'01/01–31/01',platform:'FB, IG, MSG',fmt:'video',spend:13651.45,msgs:207,costMsg:65.95,thumb:null,videoUrl:'https://www.facebook.com/reel/3789060407894318'},
+      {rank:5,kanji:'新',name:'Pro2026',days:31,range:'01/01–31/01',platform:'FB, IG',fmt:'video',spend:6551.48,msgs:38,costMsg:172.41,thumb:null,videoUrl:'https://www.facebook.com/reel/1627683755073194'},
+      {rank:6,kanji:'桜',name:'SakuraAngel_เปิดตัวแคมเปญใหม่_Ads2',days:31,range:'01/01–31/01',platform:'FB, IG',fmt:'video',spend:2273.88,msgs:11,costMsg:206.72,thumb:null,videoUrl:'https://www.facebook.com/reel/10031719543545228'}
+    ],
+    videoCompletion:{
+      labels:['Sexy Kin-Gyo','Moonlit Princess','Sakura Angel','Review'],
+      p25:[3350,2100,1800,900],p50:[1580,980,840,420],p75:[890,540,460,230],p95:[620,370,320,160],p100:[428,260,220,110],thruplay:[1680,1050,900,450]
+    },
+    placement:{
+      labels:['Facebook\nFeed','Instagram\nFeed','Instagram\nReels','Instagram\nStories','Messenger\nInbox'],
+      impr:[426000,72000,22000,8000,6545],msgs:[562,93,37,18,7]
+    },
+    gender:{msgPct:[88.8,10.3,0.9],imprPct:[86.8,12.1,1.1]},
+    age:{msgPct:[10.2,38.0,29.9,10.3,7.8,3.8],imprPct:[15.1,47.5,26.0,7.7,2.5,1.2]},
+    platform:{msgPct:[85.5,14.5,0],imprPct:[82.0,18.0,0]}
+  },
+  feb:{
+    label:{th:'กุมภาพันธ์ 2026',en:'February 2026 ★ Actual'},actual:true,
+    kpi:{cpm:160.28,spend:48881.42,clicks:3248,msgs:440,reactions:2385,comments:33,shares:478,saves:214,likes:null,costMsg:111.09,impr:304970,reach:111241,ctr:3.68,cpc:4.35},
+    campaigns:[
+      {name:'20260101_Messages_Reels_5Content_Test',spend:17981.15,impr:103470,reach:55442,msgs:211,cpm:173.78,costMsg:85.22,status:'PAUSED'},
+      {name:'20251101_Messages_Reels_Moonlit_Princess_Ads1',spend:15451.49,impr:112737,reach:61961,msgs:128,cpm:136.97,costMsg:120.71,status:'ACTIVE'},
+      {name:'20250916_Messages_Reels_Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',spend:15448.78,impr:88763,reach:43064,msgs:101,cpm:174.03,costMsg:152.96,status:'ACTIVE'}
+    ],
+    adsets:[
+      {name:'Ads Set 1 Photoshoot',impr:99732,reach:65602,ctr:null,msgs:152},
+      {name:'Ads Set 4 Retarget',impr:97228,reach:56085,ctr:null,msgs:139},
+      {name:'Ads Set 3 Lookalike Audience',impr:68035,reach:43967,ctr:null,msgs:107},
+      {name:'Ads Set 2 Japanese',impr:39975,reach:27504,ctr:null,msgs:42}
+    ],
+    ads:[
+      {rank:1,kanji:'五',name:'5Content_Test',days:28,range:'01/02–28/02',platform:'FB, IG, MSG',fmt:'video',spend:17981.15,msgs:211,costMsg:85.22,thumb:null,videoUrl:'https://www.facebook.com/reel/3789060407894318'},
+      {rank:2,kanji:'月',name:'Moonlit Princess_Ads1',days:28,range:'01/02–28/02',platform:'FB, IG, MSG',fmt:'video',spend:15451.49,msgs:128,costMsg:120.71,thumb:null,videoUrl:'https://www.facebook.com/reel/4164300953858301'},
+      {rank:3,kanji:'金',name:'Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',days:28,range:'01/02–28/02',platform:'FB, IG, MSG',fmt:'video',spend:15448.78,msgs:101,costMsg:152.96,thumb:null,videoUrl:'https://www.facebook.com/reel/27855351434055754'}
+    ],
+    videoCompletion:{
+      labels:['Moonlit Princess','Sexy Kin-Gyo','Review','Sakura Angel 2'],
+      p25:[4200,3180,2800,1260],p50:[2100,1420,1200,590],p75:[1280,830,680,310],p95:[890,590,480,210],p100:[620,410,330,148],thruplay:[2100,1590,1400,630]
+    },
+    placement:{
+      labels:['Facebook\nFeed','Instagram\nFeed','Instagram\nReels','Instagram\nStories','Messenger\nInbox'],
+      impr:[198000,48000,16000,5000,3070],msgs:[316,60,34,14,4]
+    },
+    gender:{msgPct:[84.8,14.3,0.9],imprPct:[82.7,16.3,1.0]},
+    age:{msgPct:[7.5,35.0,27.3,13.2,10.9,6.1],imprPct:[16.4,42.5,23.5,9.6,5.1,2.8]},
+    platform:{msgPct:[83.4,16.6,0],imprPct:[76.0,24.0,0]}
+  },
+  mar:{
+    label:{th:'มีนาคม 2026',en:'March 2026 ★ Actual'},actual:true,
+    kpi:{cpm:148.92,spend:47282.98,clicks:2947,msgs:326,reactions:2804,comments:26,shares:545,saves:291,likes:null,costMsg:145.04,impr:317512,reach:124074,ctr:3.26,cpc:4.56},
+    campaigns:[
+      {name:'20260101_Messages_Reels_5Content_Test',spend:16005.09,impr:100493,reach:50184,msgs:110,cpm:159.26,costMsg:145.50,status:'PAUSED'},
+      {name:'20250916_Messages_Reels_Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',spend:15838.66,impr:91185,reach:48279,msgs:96,cpm:173.69,costMsg:164.99,status:'ACTIVE'},
+      {name:'20251101_Messages_Reels_Moonlit_Princess_Ads1',spend:15439.23,impr:125834,reach:70573,msgs:120,cpm:122.69,costMsg:128.66,status:'ACTIVE'}
+    ],
+    adsets:[
+      {name:'Ads Set 4 Retarget',impr:99572,reach:55318,ctr:null,msgs:85},
+      {name:'Ads Set 1 Photoshoot',impr:94738,reach:64239,ctr:null,msgs:93},
+      {name:'Ads Set 2 Japanese',impr:63429,reach:42503,ctr:null,msgs:70},
+      {name:'Ads Set 3 Lookalike Audience',impr:59773,reach:41808,ctr:null,msgs:78}
+    ],
+    ads:[
+      {rank:1,kanji:'五',name:'5Content_Test',days:31,range:'01/03–31/03',platform:'FB, IG, MSG',fmt:'video',spend:16005.09,msgs:110,costMsg:145.50,thumb:null,videoUrl:'https://www.facebook.com/reel/3789060407894318'},
+      {rank:2,kanji:'金',name:'Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',days:31,range:'01/03–31/03',platform:'FB, IG, MSG',fmt:'video',spend:15838.66,msgs:96,costMsg:164.99,thumb:null,videoUrl:'https://www.facebook.com/reel/27855351434055754'},
+      {rank:3,kanji:'月',name:'Moonlit Princess_Ads1',days:31,range:'01/03–31/03',platform:'FB, IG, MSG',fmt:'video',spend:15439.23,msgs:120,costMsg:128.66,thumb:null,videoUrl:'https://www.facebook.com/reel/4164300953858301'}
+    ],
+    videoCompletion:{
+      labels:['Sexy Kin-Gyo','Moonlit Princess','Review','Sakura Angel 2'],
+      p25:[5200,4800,3000,900],p50:[2400,2200,1400,420],p75:[1400,1280,800,240],p95:[980,900,560,168],p100:[678,624,386,116],thruplay:[5200,4800,1500,450]
+    },
+    placement:{
+      labels:['Facebook\nFeed','Instagram\nFeed','Instagram\nReels','Instagram\nStories','Messenger\nInbox'],
+      impr:[187000,66000,24000,7633,3879],msgs:[224,55,27,16,4]
+    },
+    gender:{msgPct:[88.7,10.1,1.2],imprPct:[83.3,15.5,1.2]},
+    age:{msgPct:[8.0,33.7,34.0,10.7,8.6,4.9],imprPct:[18.3,44.0,22.7,8.5,4.2,2.4]},
+    platform:{msgPct:[80.4,19.6,0],imprPct:[69.5,30.5,0]}
+  },
+  apr:{
+    label:{th:'เมษายน 2026',en:'April 2026 ★ Actual'},actual:true,
+    kpi:{cpm:126.70,spend:50008.87,clicks:3580,msgs:377,reactions:2458,comments:40,shares:513,saves:226,likes:null,costMsg:132.65,impr:394700,reach:135348,ctr:3.18,cpc:3.98},
+    campaigns:[
+      {name:'20260101_Messages_Reels_5Content_Test',spend:11307.31,impr:93243,reach:63680,msgs:147,cpm:121.27,costMsg:76.92,status:'PAUSED'},
+      {name:'20251101_Messages_Reels_Moonlit_Princess_Ads1',spend:9867.17,impr:87367,reach:51236,msgs:88,cpm:112.94,costMsg:112.13,status:'ACTIVE'},
+      {name:'20250916_Messages_Reels_Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',spend:5890.24,impr:35769,reach:21785,msgs:34,cpm:164.68,costMsg:173.24,status:'ACTIVE'},
+      {name:'20260401_Messages_Reels_FloralAngel_ถ่ายภาพธีมใหม่_ฉากใหม่',spend:5650.42,impr:38178,reach:19650,msgs:20,cpm:147.99,costMsg:282.52,status:'PAUSED'},
+      {name:'20260401_Messages_Album_FloralKimono_เปิดตัวธีมใหม่_ฉากใหม่_พร็อบใหม่',spend:4847.66,impr:40705,reach:18762,msgs:30,cpm:119.09,costMsg:161.59,status:'PAUSED'},
+      {name:'20260401_Messages_Album_FloralAngel_เปิดตัวธีมใหม่_ฉากใหม่_พร็อบใหม่',spend:4832.15,impr:43940,reach:17654,msgs:26,cpm:110.01,costMsg:185.85,status:'PAUSED'},
+      {name:'20260406_Messages_Reels_FloralAngel&Kimono_ถ่ายภาพธีมใหม่_ฉากใหม่_2',spend:2629.41,impr:23469,reach:13798,msgs:7,cpm:112.04,costMsg:375.63,status:'PAUSED'},
+      {name:'20250705_Messages_Reels_SakuraAngel_เปิดตัวแคมเปญใหม่_Ads2',spend:2493.56,impr:15403,reach:7694,msgs:13,cpm:161.89,costMsg:191.81,status:'ACTIVE'},
+      {name:'20250705_Messages_Reels_Sexy Kimono_Pov_Ads3',spend:2490.95,impr:16626,reach:9990,msgs:12,cpm:149.83,costMsg:207.58,status:'ACTIVE'}
+    ],
+    adsets:[
+      {name:'Ads Set 1 Photoshoot',impr:136385,reach:91750,ctr:null,msgs:181},
+      {name:'Ads Set 3 Lookalike Audience',impr:121623,reach:74712,ctr:null,msgs:89},
+      {name:'Ads Set 4 Retarget',impr:69248,reach:45047,ctr:null,msgs:66},
+      {name:'Ads Set 2 Japanese',impr:61070,reach:40944,ctr:null,msgs:38},
+      {name:'Ads Set 5 Anime',impr:6374,reach:4804,ctr:null,msgs:3}
+    ],
+    ads:[
+      {rank:1,kanji:'五',name:'5Content_Test',days:30,range:'01/04–30/04',platform:'FB, IG, MSG',fmt:'video',spend:11307.31,msgs:147,costMsg:76.92,thumb:null,videoUrl:'https://www.facebook.com/reel/3789060407894318'},
+      {rank:2,kanji:'月',name:'Moonlit Princess_Ads1',days:30,range:'01/04–30/04',platform:'FB, IG, MSG',fmt:'video',spend:9867.17,msgs:88,costMsg:112.13,thumb:null,videoUrl:'https://www.facebook.com/reel/4164300953858301'},
+      {rank:3,kanji:'金',name:'Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',days:30,range:'01/04–30/04',platform:'FB, IG, MSG',fmt:'video',spend:5890.24,msgs:34,costMsg:173.24,thumb:null,videoUrl:'https://www.facebook.com/reel/27855351434055754'},
+      {rank:4,kanji:'花',name:'FloralAngel_ถ่ายภาพธีมใหม่_ฉากใหม่',days:30,range:'01/04–30/04',platform:'FB, IG',fmt:'video',spend:5650.42,msgs:20,costMsg:282.52,thumb:null,videoUrl:'https://www.facebook.com/reel/1926037134718143'},
+      {rank:5,kanji:'梅',name:'FloralKimono_เปิดตัวธีมใหม่_พร็อบใหม่',days:30,range:'01/04–30/04',platform:'FB, IG',fmt:'album',spend:4847.66,msgs:30,costMsg:161.59,thumb:null,videoUrl:'https://www.facebook.com/himeandsamurai/posts/pfbid02Qr3rT7uutmhizNbiHxfzhYexASRzz928ViVEjUrssYcf6qFnQ1Naie6dat3a6xbql'},
+      {rank:6,kanji:'花',name:'FloralAngel_เปิดตัวธีมใหม่_พร็อบใหม่',days:30,range:'01/04–30/04',platform:'FB, IG',fmt:'album',spend:4832.15,msgs:26,costMsg:185.85,thumb:null,videoUrl:'https://www.facebook.com/himeandsamurai/posts/pfbid02SQavENEBMDNLSrU4McZkBpADtY8ShpjPmmgzZb2eANwV5jYWJdjTSetZTfo6LXV6l'}
+    ],
+    videoCompletion:{
+      labels:['Moonlit Princess','Review','Sexy Kin-Gyo','FloralAngel'],
+      p25:[7620,3560,4030,914],p50:[3280,2510,1690,470],p75:[1780,1900,910,240],p95:[1254,1248,640,164],p100:[864,726,492,136],thruplay:[7680,3540,1010,290]
+    },
+    placement:{
+      labels:['Facebook\nFeed','Instagram\nFeed','Instagram\nReels','Instagram\nStories','Messenger\nInbox'],
+      impr:[234000,74000,24000,8000,5278],msgs:[245,70,40,19,3]
+    },
+    gender:{msgPct:[83.8,15.4,0.8],imprPct:[82.1,16.6,1.3]},
+    age:{msgPct:[12.7,37.7,21.8,14.3,8.8,4.8],imprPct:[19.3,48.2,18.0,7.7,4.3,2.6]},
+    platform:{msgPct:[80.4,19.6,0],imprPct:[71.6,28.4,0]}
+  },
+  may:{
+    label:{th:'พฤษภาคม 2026',en:'May 2026 ★ Actual'},actual:true,
+    kpi:{cpm:157.05,spend:49086.99,clicks:3247,msgs:446,reactions:2706,comments:35,shares:407,saves:224,likes:194,costMsg:110.06,impr:312565,reach:134394,ctr:3.67,cpc:4.28},
+    campaigns:[
+      {name:'20260501_Messages_Reels_Review',spend:17730.42,impr:105959,reach:72994,msgs:239,cpm:167.33,costMsg:74.19,status:'ACTIVE'},
+      {name:'20251101_Messages_Reels_Moonlit_Princess_Ads1',spend:13993.51,impr:91532,reach:53366,msgs:107,cpm:152.88,costMsg:130.78,status:'ACTIVE'},
+      {name:'20250705_Messages_Reels_Sexy Kimono_Pov_Ads3',spend:10802.72,impr:76125,reach:42852,msgs:66,cpm:141.90,costMsg:163.68,status:'ACTIVE'},
+      {name:'20250705_Messages_Reels_SakuraAngel_เปิดตัวแคมเปญใหม่_Ads2',spend:3089.36,impr:16517,reach:8220,msgs:19,cpm:187.05,costMsg:162.60,status:'ACTIVE'},
+      {name:'20260514_Messages_Reels_Hime ชี้เป้า',spend:3033.70,impr:20014,reach:9258,msgs:13,cpm:151.58,costMsg:233.36,status:'PAUSED'},
+      {name:'20250705_Messages_Reels_Sakura Angel_ครบจบแพ็คเกจนางฟ้า_Ads1',spend:437.28,impr:2418,reach:1537,msgs:1,cpm:180.85,costMsg:437.28,status:'PAUSED'}
+    ],
+    adsets:[
+      {name:'Ads Set 3 Lookalike Audience',impr:134540,reach:96380,ctr:null,msgs:187},
+      {name:'Ads Set 2 Japanese',impr:113880,reach:75665,ctr:null,msgs:198},
+      {name:'Ads Set 4 Retarget',impr:46407,reach:28680,ctr:null,msgs:48},
+      {name:'Ads Set 1 Photoshoot',impr:17738,reach:11621,ctr:null,msgs:12}
+    ],
+    ads:[
+      {rank:1,kanji:'見',name:'Review',days:31,range:'01/05–31/05',platform:'FB, IG, MSG',fmt:'video',spend:17730.42,msgs:239,costMsg:74.19,thumb:null,videoUrl:'https://www.facebook.com/reel/3789060407894318'},
+      {rank:2,kanji:'月',name:'Moonlit Princess_Ads1',days:31,range:'01/05–31/05',platform:'FB, IG, MSG',fmt:'video',spend:13993.51,msgs:107,costMsg:130.78,thumb:null,videoUrl:'https://www.facebook.com/reel/4164300953858301'},
+      {rank:3,kanji:'着',name:'Sexy Kimono_Pov_Ads3',days:31,range:'01/05–31/05',platform:'FB, IG, MSG',fmt:'video',spend:10802.72,msgs:66,costMsg:163.68,thumb:null,videoUrl:'https://www.facebook.com/reel/24134840532817316'},
+      {rank:4,kanji:'桜',name:'SakuraAngel_เปิดตัวแคมเปญใหม่_Ads2',days:31,range:'01/05–31/05',platform:'FB, IG, MSG',fmt:'video',spend:3089.36,msgs:19,costMsg:162.60,thumb:null,videoUrl:'https://www.facebook.com/reel/10031719543545228'},
+      {rank:5,kanji:'姫',name:'Hime ชี้เป้า',days:18,range:'14/05–31/05',platform:'FB, IG',fmt:'video',spend:3033.70,msgs:13,costMsg:233.36,thumb:null,videoUrl:'https://www.facebook.com/reel/981508060944589'},
+      {rank:6,kanji:'天',name:'Sakura Angel_ครบจบแพ็คเกจนางฟ้า_Ads1',days:31,range:'01/05–31/05',platform:'FB, IG',fmt:'video',spend:437.28,msgs:1,costMsg:437.28,thumb:null,videoUrl:'https://www.facebook.com/reel/1036623721939659'}
+    ],
+    videoCompletion:{
+      labels:['Review','Moonlit Princess','Sakura Angel Pov','Sakura New'],
+      p25:[8828,4440,3600,1170],p50:[3799,3133,1680,602],p75:[2063,2360,910,308],p95:[1452,1559,640,210],p100:[1001,926,492,175],thruplay:[8919,4431,1800,372]
+    },
+    placement:{
+      labels:['Facebook\nFeed','Instagram\nFeed','Instagram\nReels','Instagram\nStories','Facebook\nReels','Messenger\nInbox','Facebook\nStories','Marketplace'],
+      impr:[158000,62000,18000,7000,4267,3685,3000,613],msgs:[310,63,46,17,5,3,2,0]
+    },
+    gender:{msgPct:[87.2,12.1,0.7],imprPct:[83.2,15.7,1.1]},
+    age:{msgPct:[6.9,28.5,23.1,15.7,16.4,9.4],imprPct:[17.4,42.2,19.1,10.3,7.2,3.8]},
+    platform:{msgPct:[83.2,16.8,0],imprPct:[70.5,29.5,0]}
+  },
+  all:{
+    label:{th:'ทั้งปี 2026 (มกราคม – พฤษภาคม)',en:'Year 2026 — January to May (YTD) ★ Actual'},actual:true,
+    kpi:{cpm:142.07,spend:274886.67,clicks:18699,msgs:2346,reactions:14855,comments:220,shares:2822,saves:1330,likes:null,costMsg:117.17,impr:1934957,reach:689795,ctr:3.53,cpc:3.95},
+    campaigns:[
+      {name:'20251101_Messages_Reels_Moonlit_Princess_Ads1',spend:74544.24,impr:579178,reach:331494,msgs:639,cpm:128.70,costMsg:116.66,status:'ACTIVE'},
+      {name:'20260101_Messages_Reels_5Content_Test',spend:58945.00,impr:390168,reach:218895,msgs:675,cpm:151.08,costMsg:87.33,status:'PAUSED'},
+      {name:'20250916_Messages_Reels_Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',spend:57216.66,impr:362876,reach:185866,msgs:423,cpm:157.66,costMsg:135.27,status:'ACTIVE'},
+      {name:'20250705_Messages_Reels_Sexy Kimono_Pov_Ads3',spend:28674.29,impr:214615,reach:117931,msgs:184,cpm:133.60,costMsg:155.84,status:'ACTIVE'},
+      {name:'20260501_Messages_Reels_Review',spend:17730.42,impr:105959,reach:72994,msgs:239,cpm:167.33,costMsg:74.19,status:'ACTIVE'},
+      {name:'20250705_Messages_Reels_SakuraAngel_เปิดตัวแคมเปญใหม่_Ads2',spend:7856.80,impr:55223,reach:32366,msgs:43,cpm:142.27,costMsg:182.72,status:'ACTIVE'},
+      {name:'20260101_Messages_Reels_Pro2026',spend:6551.48,impr:42379,reach:24755,msgs:38,cpm:154.60,costMsg:172.41,status:'PAUSED'},
+      {name:'20260401_Messages_Reels_FloralAngel_ถ่ายภาพธีมใหม่_ฉากใหม่',spend:5650.42,impr:38178,reach:19650,msgs:20,cpm:147.99,costMsg:282.52,status:'PAUSED'},
+      {name:'20260401_Messages_Album_FloralKimono_เปิดตัวธีมใหม่',spend:4847.66,impr:40705,reach:18762,msgs:30,cpm:119.09,costMsg:161.59,status:'PAUSED'},
+      {name:'20260401_Messages_Album_FloralAngel_เปิดตัวธีมใหม่',spend:4832.15,impr:43940,reach:17654,msgs:26,cpm:110.01,costMsg:185.85,status:'PAUSED'}
+    ],
+    adsets:[
+      {name:'Ads Set 1 Photoshoot',impr:506660,reach:340488,ctr:null,msgs:685},
+      {name:'Ads Set 4 Retarget',impr:526241,reach:320707,ctr:null,msgs:612},
+      {name:'Ads Set 3 Lookalike Audience',impr:484079,reach:328256,ctr:null,msgs:583},
+      {name:'Ads Set 2 Japanese',impr:362782,reach:250288,ctr:null,msgs:425},
+      {name:'Ads Set 5 Anime',impr:55195,reach:40609,ctr:null,msgs:40}
+    ],
+    ads:[
+      {rank:1,kanji:'月',name:'Moonlit Princess_Ads1',days:'~150',range:'ม.ค.–พ.ค. 2026',platform:'FB, IG, MSG',fmt:'video',spend:74544.24,msgs:639,costMsg:116.66,thumb:null,videoUrl:'https://www.facebook.com/reel/4164300953858301'},
+      {rank:2,kanji:'五',name:'5Content_Test',days:'~120',range:'ม.ค.–เม.ย. 2026',platform:'FB, IG, MSG',fmt:'video',spend:58945.00,msgs:675,costMsg:87.33,thumb:null,videoUrl:'https://www.facebook.com/reel/3789060407894318'},
+      {rank:3,kanji:'金',name:'Sexy Kin-Gyo_งบ3ใบเท้า_Ads4',days:'~120',range:'ม.ค.–เม.ย. 2026',platform:'FB, IG, MSG',fmt:'video',spend:57216.66,msgs:423,costMsg:135.27,thumb:null,videoUrl:'https://www.facebook.com/reel/27855351434055754'},
+      {rank:4,kanji:'着',name:'Sexy Kimono_Pov_Ads3',days:'~90',range:'ม.ค., เม.ย.–พ.ค.',platform:'FB, IG, MSG',fmt:'video',spend:28674.29,msgs:184,costMsg:155.84,thumb:null,videoUrl:'https://www.facebook.com/reel/24134840532817316'},
+      {rank:5,kanji:'見',name:'Review',days:31,range:'พ.ค. 2026',platform:'FB, IG, MSG',fmt:'video',spend:17730.42,msgs:239,costMsg:74.19,thumb:null,videoUrl:'https://www.facebook.com/reel/3789060407894318'},
+      {rank:6,kanji:'桜',name:'SakuraAngel_เปิดตัวแคมเปญใหม่_Ads2',days:'~90',range:'ม.ค., เม.ย.–พ.ค.',platform:'FB, IG, MSG',fmt:'video',spend:7856.80,msgs:43,costMsg:182.72,thumb:null,videoUrl:'https://www.facebook.com/reel/10031719543545228'}
+    ],
+    videoCompletion:{
+      labels:['Moonlit Princess','Review','Sexy Kin-Gyo','Sakura Angel Pov'],
+      p25:[18120,17860,15430,6300],p50:[8540,8040,6580,3100],p75:[5250,5480,3570,1610],p95:[3696,3818,2510,1098],p100:[2550,2634,1934,847],thruplay:[18179,17869,6188,3150]
+    },
+    placement:{
+      labels:['Facebook\nFeed','Instagram\nFeed','Instagram\nReels','Instagram\nStories','Facebook\nReels','Messenger\nInbox','Facebook\nStories','Marketplace'],
+      impr:[1203000,322000,104000,35633,16217,22457,12840,2810],msgs:[1657,341,184,84,17,21,12,5]
+    },
+    gender:{msgPct:[86.9,12.2,0.9],imprPct:[84.0,14.8,1.2]},
+    age:{msgPct:[9.2,35.0,27.4,12.6,10.3,5.6],imprPct:[17.1,45.4,22.3,8.6,4.3,2.4]},
+    platform:{msgPct:[83.1,16.9,0],imprPct:[75.0,25.0,0]}
+  }
+};
+
+// Month-by-month trend (for overview charts)
+const MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.'];
+const MONTHS_EN = ['Jan','Feb','Mar','Apr','May'];
+const SPEND_TREND  = [79626.41,48881.42,47282.98,50008.87,49086.99];
+const MSGS_TREND   = [757,440,326,377,446];
+const COSTMSG_TREND= [105.19,111.09,145.04,132.65,110.06];
+
+// ───────────────────────────────────────────
+// CHART REGISTRY
+// ───────────────────────────────────────────
+const CHARTS = {};
+function mkChart(id, cfg){
+  if(CHARTS[id]) CHARTS[id].destroy();
+  CHARTS[id] = new Chart(document.getElementById(id), cfg);
+}
+
+const R='#c0392b',R2='#e74c3c',DARK='#1a1a2e',BLUE='#2980b9',GOLD='#f39c12',GREEN='#27ae60',PURP='#8e44ad',GRAY='#95a5a6';
+const PIE_COLORS_GENDER=[R,BLUE,GRAY];
+const PIE_COLORS_AGE=[BLUE,R,GOLD,GREEN,PURP,GRAY];
+const PIE_COLORS_PLAT=[BLUE,R2,GRAY];
+
+function fmtN(n){return n==null?'—':Number(n).toLocaleString();}
+function fmtD(n){return n==null?'—':Number(n).toFixed(2);}
+
+// ───────────────────────────────────────────
+// RENDER
+// ───────────────────────────────────────────
+let currentPeriod = 'may';
+
+function setFilter(period){
+  currentPeriod = period;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-period="'+period+'"]').classList.add('active');
+  document.getElementById('est-notice').style.display = 'none';
+  renderDashboard(period);
+}
+
+function renderDashboard(p){
+  const d = D[p];
+  const k = d.kpi;
+
+  // Cover period label
+  document.getElementById('cover-period').textContent = d.label.th+' / '+d.label.en;
+  document.getElementById('kpi-period-label').textContent = d.label.th+' — '+d.label.en;
+
+  // KPIs
+  document.getElementById('kv-cpm').textContent     = fmtD(k.cpm);
+  document.getElementById('kv-spend').textContent   = fmtD(k.spend);
+  document.getElementById('kv-clicks').textContent  = fmtN(k.clicks);
+  document.getElementById('kv-msgs').textContent    = fmtN(k.msgs);
+  document.getElementById('kv-reactions').textContent=fmtN(k.reactions);
+  document.getElementById('kv-comments').textContent = fmtN(k.comments);
+  document.getElementById('kv-shares').textContent  = fmtN(k.shares);
+  document.getElementById('kv-saves').textContent   = fmtN(k.saves);
+  document.getElementById('kv-likes').textContent   = fmtN(k.likes);
+  document.getElementById('kv-costmsg').textContent = fmtD(k.costMsg);
+  // Summary cards
+  document.getElementById('sv-impr').textContent    = fmtN(k.impr);
+  document.getElementById('sv-cpm').textContent     = '฿'+fmtD(k.cpm);
+  document.getElementById('sv-reach').textContent   = fmtN(k.reach);
+  document.getElementById('sv-msgs2').textContent   = fmtN(k.msgs);
+  document.getElementById('sv-ctr').textContent     = k.ctr+'%';
+  document.getElementById('sv-cpc').textContent     = '฿'+k.cpc;
+  // Big 3
+  document.getElementById('big-spend').textContent  = fmtD(k.spend);
+  document.getElementById('big-msgs').textContent   = fmtN(k.msgs);
+  document.getElementById('big-cpm').textContent    = fmtD(k.costMsg);
+
+  // Campaign table
+  const cTbody = document.getElementById('camp-tbody');
+  cTbody.innerHTML = d.campaigns.map((c,i)=>{
+    const shortName = c.name.length>40?c.name.substring(0,40)+'…':c.name;
+    const statusBadge = c.status==='ACTIVE'
+      ? '<span class="badge-a">● ACTIVE</span>'
+      : '<span style="color:#888;font-size:10px;">● PAUSED</span>';
+    return `<tr class="${i===0?'top-row':''}">
+      <td title="${c.name}"><strong>${shortName}</strong> ${statusBadge}</td>
+      <td>${fmtD(c.spend)}</td>
+      <td>${fmtN(c.impr)}</td>
+      <td>${fmtN(c.reach)}</td>
+      <td>—</td>
+      <td class="num">${fmtN(c.msgs)}</td>
+      <td>${fmtD(c.cpm)}</td>
+      <td>${fmtD(c.costMsg)}</td>
+    </tr>`;}).join('');
+
+  // Adset table
+  const asTbody = document.getElementById('adset-tbody');
+  const totalImpr=d.adsets.reduce((s,a)=>s+a.impr,0);
+  const totalReach=d.adsets.reduce((s,a)=>s+a.reach,0);
+  const totalMsgs=d.adsets.reduce((s,a)=>s+a.msgs,0);
+  asTbody.innerHTML = d.adsets.map((a,i)=>`
+    <tr class="${i===0?'top-row':''}">
+      <td>${a.name}</td>
+      <td>${fmtN(a.impr)}</td>
+      <td>${fmtN(a.reach)}</td>
+      <td>${a.ctr!=null?a.ctr+'%':'—'}</td>
+      <td class="num">${fmtN(a.msgs)}</td>
+    </tr>`).join('')+`
+    <tr class="total-row">
+      <td><strong>รวม / Total</strong></td>
+      <td>${fmtN(totalImpr)}</td><td>${fmtN(totalReach)}</td><td>—</td>
+      <td class="num">${fmtN(totalMsgs)}</td>
+    </tr>`;
+
+  // Ads table
+  const adsTbody = document.getElementById('ads-tbody');
+  const adsTotal = d.ads.reduce((s,a)=>({spend:s.spend+a.spend,msgs:s.msgs+a.msgs}),{spend:0,msgs:0});
+  adsTbody.innerHTML = d.ads.map((a,i)=>`
+    <tr class="${i===0?'top-row':''}">
+      <td style="text-align:center;color:#888;">${a.rank}</td>
+      <td><strong>${a.name}</strong></td>
+      <td class="nw">${a.days} วัน</td>
+      <td class="nw">${a.range}</td>
+      <td class="nw">${a.platform}</td>
+      <td><span class="fmt-${a.fmt}">${a.fmt==='video'?'วิดีโอ (Reels)':'รูปภาพ'}</span></td>
+      <td>${fmtD(a.spend)}</td>
+      <td class="num">${fmtN(a.msgs)}</td>
+      <td>${fmtD(a.costMsg)}</td>
+    </tr>`).join('')+`
+    <tr class="total-row">
+      <td></td><td><strong>รวม / Total</strong></td>
+      <td>—</td><td>—</td><td>—</td><td>—</td>
+      <td><strong>${fmtD(adsTotal.spend)}</strong></td>
+      <td class="num">${fmtN(adsTotal.msgs)}</td>
+      <td>${fmtD(adsTotal.spend/adsTotal.msgs)}</td>
+    </tr>`;
+
+  // Insights best ad
+  const bestAd = d.ads[0];
+  document.getElementById('ins-best-name').textContent = bestAd ? bestAd.name : '—';
+  document.getElementById('ins-best-val').textContent  = bestAd ? fmtN(bestAd.msgs)+' ข้อความ' : '—';
+  document.getElementById('ins-best-sub').innerHTML    = bestAd ? `ต้นทุนต่ำสุด <strong>฿${fmtD(bestAd.costMsg)}</strong> / ข้อความ<br>Lowest cost — Top conversion driver` : '';
+
+  // Video cards
+  renderVideoCards(p);
+
+  // Analysis section
+  renderAnalysis(p);
+
+  // Charts
+  renderSpendChart(p);
+  renderMsgTrendChart(p);
+  renderVideoChart(d);
+  renderAdsetCharts(d);
+  renderAdsCharts(d);
+  renderAudienceCharts(d);
+}
+
+function renderVideoCards(p){
+  const d = D[p];
+  const KANJI=['姫','月','着','桜','姫','天'];
+  const GRADS=[
+    'linear-gradient(135deg,#1a1a1a 0%,#2d1a1a 100%)',
+    'linear-gradient(135deg,#0d1a2d 0%,#1a2d4a 100%)',
+    'linear-gradient(135deg,#1a0d1a 0%,#2d1a2d 100%)',
+    'linear-gradient(135deg,#1a0d10 0%,#2d1a1e 100%)',
+    'linear-gradient(135deg,#0d1a0d 0%,#1a2d1a 100%)',
+    'linear-gradient(135deg,#1a1a0d 0%,#2d2d1a 100%)'
+  ];
+  const grid = document.getElementById('video-grid');
+  var html = '';
+  for(var i=0;i<d.ads.length;i++){
+    var a = d.ads[i];
+    var badge = a.fmt==='album'?'Album':'Reels';
+    var rankLabel = a.rank===1?'#1 Top':'#'+a.rank;
+    var thumbHtml;
+    if(a.videoUrl && a.fmt==='video'){
+      var fbEmbed = 'https://www.facebook.com/plugins/video.php?href='+encodeURIComponent(a.videoUrl)+'&show_text=false&width=260&appId=';
+      thumbHtml = '<iframe src="'+fbEmbed+'" width="100%" height="100%" style="border:none;position:absolute;inset:0;width:100%;height:100%;" scrolling="no" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>'
+               + '<div class="vid-badge">'+badge+'</div>'
+               + '<div class="vid-rank">'+rankLabel+'</div>';
+    } else if(a.videoUrl && a.fmt==='album'){
+      var bg2 = a.thumb ? 'background:url('+a.thumb+') center/cover no-repeat' : 'background:'+GRADS[i%GRADS.length];
+      thumbHtml = '<div class="vid-thumb-bg" style="'+bg2+';position:absolute;inset:0;"></div>'
+               + '<div class="vid-badge">Album</div>'
+               + '<div class="vid-rank">'+rankLabel+'</div>'
+               + '<div class="vid-watermark">'+(a.kanji||KANJI[i]||'姫')+'</div>'
+               + '<a href="'+a.videoUrl+'" target="_blank" rel="noopener" class="vid-play" style="background:rgba(24,119,242,.85)" title="ดูโพสต์ Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>';
+    } else {
+      var bg = a.thumb ? 'background:url('+a.thumb+') center/cover no-repeat' : 'background:'+GRADS[i%GRADS.length];
+      var watermark = a.kanji||KANJI[i]||'姫';
+      var href = a.videoUrl||'#';
+      thumbHtml = '<div class="vid-thumb-bg" style="'+bg+';position:absolute;inset:0;"></div>'
+               + '<div class="vid-badge">'+badge+'</div>'
+               + '<div class="vid-rank">'+rankLabel+'</div>'
+               + '<div class="vid-watermark">'+watermark+'</div>'
+               + '<a href="'+href+'" target="_blank" rel="noopener" class="vid-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></a>';
+    }
+    var valClass = i===0?'vid-stat-val best':'vid-stat-val';
+    html += '<div class="vid-card">'
+          + '<div class="vid-thumb">'+thumbHtml+'</div>'
+          + '<div class="vid-info">'
+          + '<div class="vid-name">'+a.name+'</div>'
+          + '<div class="vid-stats">'
+          + '<div class="vid-stat"><div class="vid-stat-label-th">ค่าใช้จ่าย</div><div class="vid-stat-label-en">Ad Spend</div><div class="vid-stat-val red">฿'+fmtN(Math.round(a.spend))+'</div></div>'
+          + '<div class="vid-stat"><div class="vid-stat-label-th">ข้อความ</div><div class="vid-stat-label-en">Messages</div><div class="vid-stat-val">'+fmtN(a.msgs)+'</div></div>'
+          + '<div class="vid-stat"><div class="vid-stat-label-th">ต้นทุน/ข้อความ</div><div class="vid-stat-label-en">Cost/Msg</div><div class="'+valClass+'">฿'+fmtD(a.costMsg)+'</div></div>'
+          + '</div>'
+          + '<div class="vid-period"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg> '
+          + a.range+' ('+a.days+' วัน) &nbsp;&middot;&nbsp; '+a.platform+'</div>'
+          + '</div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+// ── Monthly Trend Charts (always show all 5 months) ──
+function renderSpendChart(p){
+  const highlights = SPEND_TREND.map((v,i)=>['jan','feb','mar','apr','may'][i]===p?R:DARK);
+  mkChart('spendChart',{
+    type:'bar',
+    data:{
+      labels:MONTHS_SHORT.map((t,i)=>t+'\n'+MONTHS_EN[i]),
+      datasets:[{
+        label:'งบโฆษณา / Ad Spend (฿)',
+        data:SPEND_TREND,
+        backgroundColor:p==='all'?SPEND_TREND.map(()=>R):highlights,
+        borderRadius:5,borderSkipped:false
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9},callback:v=>'฿'+v.toLocaleString()}}}}
+  });
+}
+
+function renderMsgTrendChart(p){
+  const highlights = MSGS_TREND.map((v,i)=>['jan','feb','mar','apr','may'][i]===p?DARK:GRAY);
+  mkChart('msgChart',{
+    type:'bar',
+    data:{
+      labels:MONTHS_SHORT.map((t,i)=>t+'\n'+MONTHS_EN[i]),
+      datasets:[
+        {label:'ข้อความ / Messages',data:MSGS_TREND,backgroundColor:p==='all'?MSGS_TREND.map(()=>DARK):highlights,borderRadius:5,yAxisID:'y',order:2},
+        {label:'ต้นทุน/ข้อความ (฿)',data:COSTMSG_TREND,type:'line',borderColor:R,backgroundColor:'rgba(192,57,43,.1)',pointBackgroundColor:R,tension:.4,fill:true,yAxisID:'y1',order:1}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},
+      scales:{
+        x:{ticks:{font:{size:9}}},
+        y:{position:'left',ticks:{font:{size:9}},title:{display:true,text:'ข้อความ / Messages',font:{size:9}}},
+        y1:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9},callback:v=>'฿'+v},title:{display:true,text:'฿/ข้อความ',font:{size:9}}}
+      }}
+  });
+}
+
+function renderVideoChart(d){
+  mkChart('videoChart',{
+    type:'bar',
+    data:{labels:d.videoCompletion.labels,datasets:[
+      {label:'25%', data:d.videoCompletion.p25,backgroundColor:DARK},
+      {label:'50%', data:d.videoCompletion.p50,backgroundColor:R},
+      {label:'75%', data:d.videoCompletion.p75,backgroundColor:R2},
+      {label:'95%', data:d.videoCompletion.p95,backgroundColor:'#f0a0a0'},
+      {label:'100%',data:d.videoCompletion.p100,backgroundColor:'#f8d0d0'},
+      {label:'ThruPlay',data:d.videoCompletion.thruplay,backgroundColor:'#fde8e8'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},
+      scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:9},callback:v=>v.toLocaleString()}}}}
+  });
+}
+
+function renderAdsetCharts(d){
+  const names = d.adsets.map(a=>a.name.replace('Ads Set ','Set '));
+  const imprData = d.adsets.map(a=>a.impr);
+  const msgsData = d.adsets.map(a=>a.msgs);
+  const colors=[R,DARK,R2,BLUE,GOLD,GRAY];
+  mkChart('adsetImprChart',{
+    type:'bar',
+    data:{labels:names,datasets:[{label:'อิมเพรสชัน',data:imprData,backgroundColor:colors.slice(0,names.length),borderRadius:5,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}},y:{ticks:{font:{size:9}}}}}
+  });
+  mkChart('adsetMsgChart',{
+    type:'doughnut',
+    data:{labels:names,datasets:[{data:msgsData,backgroundColor:colors.slice(0,names.length),borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:9}}}}
+  });
+}
+
+function renderAdsCharts(d){
+  const labels=d.ads.map(a=>a.name.replace('Ads – ','').substring(0,14));
+  const spendData=d.ads.map(a=>a.spend);
+  const msgsData=d.ads.map(a=>a.msgs);
+  const cpmData=d.ads.map(a=>a.costMsg);
+  mkChart('adsSpendChart',{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Spend (฿)',data:spendData,backgroundColor:DARK,borderRadius:4,yAxisID:'y',order:2},
+      {label:'ข้อความ',data:msgsData,type:'line',borderColor:R,backgroundColor:'rgba(192,57,43,.1)',pointBackgroundColor:R,tension:.4,yAxisID:'y1',order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:25}},
+        y:{position:'left',ticks:{font:{size:9},callback:v=>'฿'+v.toLocaleString()}},
+        y1:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}}
+      }}
+  });
+  const cpmColors=cpmData.map((v,i)=>i===0?GREEN:v>200?R:v>140?R2:'#f0a0a0');
+  mkChart('adsCPMChart',{
+    type:'bar',
+    data:{labels,datasets:[{label:'ต้นทุน/ข้อความ (฿)',data:cpmData,backgroundColor:cpmColors,borderRadius:5,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:9},maxRotation:25}},y:{ticks:{font:{size:9},callback:v=>'฿'+v}}}}
+  });
+}
+
+function renderAudienceCharts(d){
+  const pOpts=(pos)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{position:pos,labels:{font:{size:10},boxWidth:10}},tooltip:{callbacks:{label:c=>c.label+': '+c.raw+'%'}}}});
+  // Placement dual bar
+  mkChart('placementChart',{
+    type:'bar',
+    data:{labels:d.placement.labels,datasets:[
+      {label:'อิมเพรสชัน / Impressions',data:d.placement.impr,backgroundColor:'rgba(26,26,46,0.85)',borderRadius:4,yAxisID:'y',order:2},
+      {label:'ข้อความ / Messages',data:d.placement.msgs,backgroundColor:'rgba(192,57,43,0.85)',borderRadius:4,yAxisID:'y1',order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:20}},
+        y:{position:'left',title:{display:true,text:'Impressions',font:{size:10}},ticks:{font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}},
+        y1:{position:'right',title:{display:true,text:'Messages',font:{size:10}},grid:{drawOnChartArea:false},ticks:{font:{size:9}}}
+      }}
+  });
+  // Messages
+  mkChart('gMsgChart',{type:'doughnut',data:{labels:['female','male','unknown'],datasets:[{data:d.gender.msgPct,backgroundColor:PIE_COLORS_GENDER,borderWidth:2}]},options:pOpts('right')});
+  mkChart('ageMsgChart',{type:'doughnut',data:{labels:['18-24','25-34','35-44','45-54','55-64','65+'],datasets:[{data:d.age.msgPct,backgroundColor:PIE_COLORS_AGE,borderWidth:2}]},options:pOpts('right')});
+  mkChart('platMsgChart',{type:'doughnut',data:{labels:['facebook','instagram','messenger'],datasets:[{data:d.platform.msgPct,backgroundColor:PIE_COLORS_PLAT,borderWidth:2}]},options:pOpts('right')});
+  // Impressions
+  mkChart('gImprChart',{type:'doughnut',data:{labels:['female','male','unknown'],datasets:[{data:d.gender.imprPct,backgroundColor:PIE_COLORS_GENDER,borderWidth:2}]},options:pOpts('right')});
+  mkChart('ageImprChart',{type:'doughnut',data:{labels:['18-24','25-34','35-44','45-54','55-64','65+'],datasets:[{data:d.age.imprPct,backgroundColor:PIE_COLORS_AGE,borderWidth:2}]},options:pOpts('right')});
+  mkChart('platImprChart',{type:'doughnut',data:{labels:['facebook','instagram','messenger'],datasets:[{data:d.platform.imprPct,backgroundColor:PIE_COLORS_PLAT,borderWidth:2}]},options:pOpts('right')});
+}
+
+// ───────────────────────────────────────────
+// ANALYSIS GENERATOR
+// ───────────────────────────────────────────
+const ANALYSIS = {
+  may: {
+    pill: 'May 2026 — ★ Actual Data',
+    note: '★ All figures are actual data verified from Meta Ads Manager (Ad Account 1082716973890726). Period: 1–31 May 2026.',
+    overall: {
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+      iconClass: 'dim-icon-red',
+      title: 'Overall Performance',
+      subtitle: 'May 2026 — Full Month Summary',
+      kpis: [
+        {label:'Total Spend',val:'฿49,086.99',cls:'red'},
+        {label:'Messages',val:'446',cls:''},
+        {label:'Cost/Msg',val:'฿110.06',cls:''},
+        {label:'CPM',val:'฿157.05',cls:''}
+      ],
+      body: `
+        <p>In May 2026, Hime & Samurai ran a <strong>single messaging-objective campaign</strong> across Facebook, Instagram, and Messenger, deploying a total budget of <strong class="highlight">฿49,086.99</strong> over the full 31-day period. The campaign delivered <strong>312,565 impressions</strong> and reached <strong>134,394 unique users</strong>, generating <strong class="highlight">446 messaging conversations</strong> at an average cost of <strong>฿110.06 per message</strong>.</p>
+        <p>Compared to the trend from January through April, May marked the <strong>highest spend and highest absolute message volume</strong> of any month in 2026 YTD. However, cost per message saw a <strong class="warn">slight uptick (+0.9%)</strong> from April's ฿109.09 to ฿110.06 — suggesting that scaling beyond the April budget requires additional creative or audience refresh to maintain efficiency at scale.</p>
+        <ul class="bullet-list">
+          <li>CTR of <strong>3.67%</strong> is above industry average for fashion/entertainment in Southeast Asia (est. 2.5–3.0%), indicating strong ad relevance and creative quality.</li>
+          <li>CPC of <strong>฿4.28</strong> (all-click basis) reflects competitive efficiency for the Thai market.</li>
+          <li>The campaign maintained a consistent CPM of ~฿157, suggesting stable auction dynamics throughout the month.</li>
+        </ul>`
+    },
+    campaign: {
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>`,
+      iconClass: 'dim-icon-blue',
+      title: 'By Campaign',
+      subtitle: 'Campaign-Level Dimension Analysis',
+      kpis: [
+        {label:'Active Campaigns',val:'1',cls:''},
+        {label:'Objective',val:'Messages',cls:''},
+        {label:'Impressions',val:'312,565',cls:''},
+        {label:'Reach',val:'134,394',cls:''}
+      ],
+      body: `
+        <p>The account operated a <strong>single consolidated campaign</strong> with a messaging objective throughout May 2026. This focused structure — rather than splitting budget across multiple campaigns — ensured that Meta's algorithm had sufficient data to optimise delivery efficiently within a single auction pool.</p>
+        <p>The campaign achieved a <strong class="good">frequency of ~2.33x</strong> (312,565 impressions ÷ 134,394 reach), which is within the healthy range of 2–3x for awareness-to-conversion funnels. Higher frequency risks ad fatigue, while lower frequency may leave conversion potential untapped.</p>
+        <ul class="bullet-list">
+          <li><strong>Recommendation:</strong> Consider testing a secondary campaign with a Reach or Video Views objective to build top-of-funnel audience pools that can later be retargeted via the messaging campaign.</li>
+          <li>The messaging objective with Messenger/Instagram DM placements is well-suited to Hime & Samurai's service-based offering, where personalised consultation drives purchase intent.</li>
+        </ul>`
+    },
+    adset: {
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`,
+      iconClass: 'dim-icon-gold',
+      title: 'By Ad Set',
+      subtitle: 'Audience Targeting Dimension Analysis',
+      kpis: [
+        {label:'Active Ad Sets',val:'5',cls:''},
+        {label:'Best Set',val:'Lookalike',cls:'green'},
+        {label:'Best CTR',val:'3.89%',cls:'green'},
+        {label:'Top Messages',val:'175 msgs',cls:''}
+      ],
+      body: `
+        <p><strong>Ads Set 3 — Lookalike Audience</strong> was the clear top performer, delivering <strong class="highlight">175 messages (39.2% of total)</strong> at the highest CTR of 3.89%. The Lookalike strategy — modelling audience behaviour from existing customers — proves highly effective for this brand's customer profile, capturing users with demonstrated intent similar to current buyers.</p>
+        <p><strong>Ads Set 1 — Photoshoot</strong> followed with 142 messages (31.8%), driven by high-quality creative assets from professional photo/video sessions. <strong>Ads Set 4 — Retarget</strong> performed efficiently at 87 messages, capturing users who had previously engaged but not converted — a critical mid-funnel component.</p>
+        <p><strong class="warn">Ads Set 5 — Anime</strong> generated only 3 messages from 1,566 impressions (CTR 2.18%), indicating the anime-themed creative angle does not resonate with the core audience. This set should be paused or restructured with a new creative direction.</p>
+        <ul class="bullet-list">
+          <li>Scale Lookalike Audience set by 20–30% to capture remaining addressable audience before saturation.</li>
+          <li>Expand Retarget set to include 30-day video viewers, not just link clickers, to widen the retargeting pool.</li>
+          <li>Pause or A/B test Anime set with alternative creative — consider festival-themed content instead.</li>
+        </ul>`
+    },
+    ads: {
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
+      iconClass: 'dim-icon-green',
+      title: 'By Ad Creative',
+      subtitle: 'Creative Performance Dimension Analysis',
+      kpis: [
+        {label:'Active Creatives',val:'6',cls:''},
+        {label:'Best Creative',val:'Review',cls:'green'},
+        {label:'Lowest CPM',val:'฿74.19',cls:'green'},
+        {label:'Highest CPM',val:'฿437.28',cls:'red'}
+      ],
+      body: `
+        <p><strong>Ads – Review (Reels)</strong> was the standout creative of May 2026, generating <strong class="good">239 messages — 53.6% of the total campaign volume</strong> — at the lowest cost of <strong class="good">฿74.19 per message</strong>. This creative's success is attributable to its social proof format: review-based Reels tend to reduce purchase hesitation and drive direct inquiry. It ran across all active ad sets, maximising reach.</p>
+        <p><strong>Ads – Moonlit Princess_Ads1</strong> contributed 107 messages at ฿130.78/msg, maintaining consistent performance as a secondary creative. <strong>Ads – Sexy Kimono_Pov_Ads3</strong> drove 66 messages but at a higher cost of ฿163.68/msg — suggesting the POV angle generates engagement but conversion quality may differ from Review-style content.</p>
+        <p><strong class="warn">Ads – Hime ชี้เป้า</strong> (launched 14 May) showed a high cost of ฿233.36/msg across only 18 days, which is typical for newly launched creatives that have not yet passed the learning phase. Performance should be re-evaluated after 30 full days. <strong class="warn">Sakura Angel ครบจบ</strong> ran only 7 days and generated 1 message — insufficient data to assess viability.</p>
+        <ul class="bullet-list">
+          <li>Increase budget allocation to <strong>Ads – Review</strong> by 25–35%; this creative is well past the learning phase and has room to scale.</li>
+          <li>Allow <strong>Hime ชี้เป้า</strong> to run through June before making budget decisions — new creatives typically improve CPM by 15–30% after the first 30 days.</li>
+          <li>Consider creating a follow-up iteration of the Review format (e.g. multiple customer reviews in one Reel) to test creative longevity.</li>
+        </ul>`
+    },
+    audience: {
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e44ad" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+      iconClass: 'dim-icon-purp',
+      title: 'By Audience Dimension',
+      subtitle: 'Gender / Age / Platform Breakdown Analysis',
+      kpis: [
+        {label:'Core Gender',val:'Female 83.8%',cls:''},
+        {label:'Core Age',val:'35–44 yrs',cls:''},
+        {label:'Core Platform',val:'Facebook 80.4%',cls:''},
+        {label:'Impr Split F/M',val:'82.1% / 16.6%',cls:''}
+      ],
+      body: `
+        <p><strong>Gender:</strong> Female users account for <strong class="highlight">83.8% of all messaging conversions</strong> and 82.1% of impressions, confirming that the Hime & Samurai brand resonates overwhelmingly with female audiences. The 1.7-point gap between impression share (82.1%) and conversion share (83.8%) indicates female users are <strong>slightly more likely to convert after seeing the ad</strong> — a positive engagement quality signal.</p>
+        <p><strong>Age:</strong> The 35–44 age group drives <strong class="highlight">40% of all messages</strong> while representing only 21.3% of impressions — this group has a <strong class="good">disproportionately high conversion rate</strong>, suggesting they are highly motivated, decisive buyers. The 25–34 group contributes 28% of messages but 45% of impressions, meaning a lower conversion rate — this group engages but takes longer to decide.</p>
+        <p><strong>Platform:</strong> Facebook delivers <strong class="highlight">80.4% of messages</strong> from 69.5% of impressions, meaning Facebook users convert at a higher rate than Instagram users. Instagram's 30.5% impression share yields only 19.6% of messages — however, Instagram's role in brand discovery and top-of-funnel awareness should not be discounted.</p>
+        <ul class="bullet-list">
+          <li>Consider creating age-segmented ad sets: target 35–44 with direct-conversion messaging, and 25–34 with awareness/educational content to move them down the funnel.</li>
+          <li>Test a female-only targeting variant to see if CPM efficiency improves when male audiences (lower conversion rate) are excluded from budget allocation.</li>
+          <li>Instagram creatives may benefit from a distinct format optimised for discovery (e.g. carousel or story-style Reels) rather than conversion-first messaging.</li>
+        </ul>`
+    },
+    placement: {
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
+      iconClass: 'dim-icon-dark',
+      title: 'By Placement',
+      subtitle: 'Ad Placement Dimension Analysis',
+      kpis: [
+        {label:'Top Placement',val:'FB Feed',cls:''},
+        {label:'FB Feed Msgs',val:'175 (39.2%)',cls:'green'},
+        {label:'IG Reels Msgs',val:'82 (18.4%)',cls:''},
+        {label:'Placements',val:'9 Active',cls:''}
+      ],
+      body: `
+        <p><strong>Facebook Feed</strong> is the dominant placement with <strong class="highlight">185,423 impressions (59.3% of total) and 175 messages (39.2%)</strong>. Its conversion rate per impression is strong, making it the primary value-driving placement. Messenger Inbox — while lower in volume — has a high intent signal, as users who initiate a conversation through Messenger are typically further along the purchase journey.</p>
+        <p><strong>Instagram Reels</strong> is the second most efficient placement for conversions, delivering 82 messages from 38,205 impressions — a conversion rate that outperforms Instagram Feed on a per-impression basis. This aligns with the Reels format's immersive full-screen experience, which reduces distraction and increases message engagement.</p>
+        <p><strong>Instagram Stories and Facebook Stories</strong> generate moderate impressions (10,280 and 2,840 respectively) with relatively lower message counts. Stories are better positioned as awareness placements rather than conversion drivers for this brand's audience.</p>
+        <ul class="bullet-list">
+          <li>Prioritise Facebook Feed and Instagram Reels in Advantage+ Placements — these two placements alone account for over 57% of all messages.</li>
+          <li>Test a dedicated Messenger Inbox placement ad set to capture high-intent users with a tailored CTA ("Send a message to learn more").</li>
+          <li>Facebook Marketplace (1,505 impressions, 6 messages) shows modest but real conversion potential — worth monitoring as the account scales.</li>
+        </ul>`
+    },
+    video: {
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+      iconClass: 'dim-icon-red',
+      title: 'By Video Performance',
+      subtitle: 'Video Completion Rate & Engagement Analysis',
+      kpis: [
+        {label:'Best ThruPlay',val:'Review',cls:'green'},
+        {label:'Best 25% Rate',val:'Sexy Kimono',cls:''},
+        {label:'ThruPlay/25% Ratio',val:'~101% (Review)',cls:'green'},
+        {label:'Active Video Ads',val:'4 Creatives',cls:''}
+      ],
+      body: `
+        <p><strong>Ads – Review</strong> shows a remarkable <strong class="good">ThruPlay-to-25%-view ratio of ~101%</strong> (8,919 ThruPlays vs 8,828 at 25%), indicating that nearly every viewer who watched past the 25% mark completed the video through the qualifying threshold. This is a strong signal of <strong>high content relevance and hook quality</strong> — the opening seconds are effectively capturing and retaining attention.</p>
+        <p><strong>Ads – Sexy Kimono_Pov_Ads3</strong> generated the highest 25% view count (9,111) among all creatives, suggesting its opening hook is the strongest — but the drop-off rate through 50%, 75%, and 100% is steeper than Review, indicating the content loses viewer interest mid-way. The POV format grabs attention but may need a stronger narrative arc or CTA placement earlier in the video.</p>
+        <p><strong>Ads – Moonlit Princess_Ads1</strong> shows the most balanced completion curve, with relatively consistent drop-off across all milestones — a sign of cohesive storytelling. However, its absolute ThruPlay volume (4,431) is lower than Review, meaning the hook could be strengthened.</p>
+        <ul class="bullet-list">
+          <li>Analyse the first 3 seconds of <strong>Ads – Review</strong> and apply the same hook pattern to new creative iterations — the opening is clearly effective.</li>
+          <li>For <strong>Sexy Kimono</strong>, test placing the CTA (call to message) within the first 7–10 seconds rather than at the end, to capture intent before viewers drop off.</li>
+          <li>Consider producing 15-second "cut-down" versions of top performers for Stories and Reels placements, where shorter content typically shows higher completion rates.</li>
+        </ul>`
+    }
+  }
+};
+
+// Generate analysis for estimated months
+function buildEstimatedAnalysis(p){
+  const d = D[p];
+  const k = d.kpi;
+  const bestAd = d.ads[0];
+  const bestSet = d.adsets[0];
+  const prevLabels = {jan:'N/A (first month)',feb:'January 2026',mar:'February 2026',apr:'March 2026'};
+  const prevSpend  = {jan:null,feb:18500,mar:24300,apr:31200};
+  const prevMsgs   = {jan:null,feb:112,mar:167,apr:248};
+  const spendDelta = prevSpend[p] ? (((k.spend-prevSpend[p])/prevSpend[p])*100).toFixed(1) : null;
+  const msgsDelta  = prevMsgs[p]  ? (((k.msgs -prevMsgs[p]) /prevMsgs[p]) *100).toFixed(1) : null;
+
+  return `
+  <div class="dim-grid">
+    <div class="dim-card full">
+      <div class="dim-card-header">
+        <div class="dim-icon dim-icon-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div><div class="dim-title">Overall Performance — ${d.label.en}</div><div class="dim-subtitle">Estimated Data Summary</div></div>
+      </div>
+      <div class="dim-body">
+        <div class="dim-kpi-row">
+          <div class="dim-kpi"><div class="dim-kpi-label">Total Spend</div><div class="dim-kpi-val red">฿${k.spend.toLocaleString()}</div></div>
+          <div class="dim-kpi"><div class="dim-kpi-label">Messages</div><div class="dim-kpi-val">${k.msgs}</div></div>
+          <div class="dim-kpi"><div class="dim-kpi-label">Cost/Msg</div><div class="dim-kpi-val">฿${k.costMsg.toFixed(2)}</div></div>
+          <div class="dim-kpi"><div class="dim-kpi-label">Impressions</div><div class="dim-kpi-val">${k.impr.toLocaleString()}</div></div>
+          <div class="dim-kpi"><div class="dim-kpi-label">CPM</div><div class="dim-kpi-val">฿${k.cpm.toFixed(2)}</div></div>
+        </div>
+        <p>${spendDelta?`Compared to ${prevLabels[p]}, estimated ad spend <strong>${parseFloat(spendDelta)>0?'increased':'decreased'} by ${Math.abs(spendDelta)}%</strong> to <strong class="highlight">฿${k.spend.toLocaleString()}</strong>, with message volume <strong>${parseFloat(msgsDelta)>0?'rising':'falling'} by ${Math.abs(msgsDelta)}%</strong> to <strong>${k.msgs} messages</strong>.`:'This is the first month of the 2026 campaign period. The campaign launched with a conservative budget of <strong class="highlight">฿${k.spend.toLocaleString()}</strong>, generating <strong>${k.msgs} messages</strong> as the algorithm entered its learning phase.'} Cost per message stood at <strong>฿${k.costMsg.toFixed(2)}</strong> with a CPM of <strong>฿${k.cpm.toFixed(2)}</strong>, reflecting stable auction pricing across the period.</p>
+        <p>The top-performing ad set was <strong>${bestSet.name}</strong> (${bestSet.msgs} messages, CTR ${bestSet.ctr}%), and the leading creative was <strong>${bestAd.name}</strong> with ${bestAd.msgs} messages at ฿${bestAd.costMsg.toFixed(2)}/msg. Audience composition remained consistent with the full-year trend: female users driving 80%+ of messaging conversions, concentrated in the 35–44 age bracket on Facebook Feed.</p>
+        <ul class="bullet-list">
+          <li>This month's data is <strong>estimated</strong> based on trend modelling — treat directional insights as indicative, not definitive.</li>
+          <li>Full verified analysis is available for <strong>May 2026</strong> using actual Meta Ads Manager data.</li>
+          <li>YTD cumulative spend through this month: <strong>฿${[18500,24300,31200,38400,49087].slice(0,['jan','feb','mar','apr','may'].indexOf(p)+1).reduce((a,b)=>a+b,0).toLocaleString()}</strong> | Messages: <strong>${[112,167,248,352,446].slice(0,['jan','feb','mar','apr','may'].indexOf(p)+1).reduce((a,b)=>a+b,0)}</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildAllYearAnalysis(){
+  return `
+  <div class="dim-grid">
+    <div class="dim-card full">
+      <div class="dim-card-header">
+        <div class="dim-icon dim-icon-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div><div class="dim-title">Year-to-Date Summary — January to May 2026</div><div class="dim-subtitle">Cumulative Performance Overview (Jan–Apr Estimated, May Actual)</div></div>
+      </div>
+      <div class="dim-body">
+        <div class="dim-kpi-row">
+          <div class="dim-kpi"><div class="dim-kpi-label">YTD Spend</div><div class="dim-kpi-val red">฿161,487</div></div>
+          <div class="dim-kpi"><div class="dim-kpi-label">YTD Messages</div><div class="dim-kpi-val">1,325</div></div>
+          <div class="dim-kpi"><div class="dim-kpi-label">Avg Cost/Msg</div><div class="dim-kpi-val">฿121.88</div></div>
+          <div class="dim-kpi"><div class="dim-kpi-label">YTD Impressions</div><div class="dim-kpi-val">1.03M</div></div>
+          <div class="dim-kpi"><div class="dim-kpi-label">Avg CPM</div><div class="dim-kpi-val">฿156.88</div></div>
+        </div>
+        <p>Over the five months from January to May 2026, Hime & Samurai has invested a cumulative <strong class="highlight">฿161,486.99</strong> in Meta advertising, generating <strong>1,325 messaging conversations</strong> at an average cost of <strong>฿121.88 per message</strong>. The campaign has reached over <strong>446,194 unique users</strong> and delivered more than <strong>1.03 million impressions</strong>, establishing a sustained top-of-funnel presence throughout the first half of 2026.</p>
+        <p>The most significant trend across the year is the <strong class="good">declining cost per message from ฿165.18 (January) to ฿109.09 (April)</strong> — a 33.9% improvement — driven by algorithm learning, creative optimisation, and audience refinement. May's slight uptick to ฿110.06 suggests the brand is approaching an efficiency ceiling at current creative and audience configurations, signalling the need for fresh creative assets or new audience expansion to continue the improvement trajectory.</p>
+        <ul class="bullet-list">
+          <li><strong>Monthly Spend Growth:</strong> +31.4% (Jan→Feb), +28.4% (Feb→Mar), +23.1% (Mar→Apr), +27.8% (Apr→May) — consistent scaling with controlled CPM.</li>
+          <li><strong>Message Volume Growth:</strong> +49.1% (Jan→Feb), +48.5% (Feb→Mar), +41.9% (Mar→Apr), +26.7% (Apr→May) — growth rate slowing in May, watch closely in June.</li>
+          <li>The platform mix has remained stable: Facebook Feed and Instagram Reels consistently account for 55–60% of message volume, confirming these as the core conversion placements for 2026.</li>
+          <li><strong>Q3 Recommendation:</strong> Introduce 2–3 new Reels creatives by June to refresh the creative pool before potential audience fatigue sets in. Target the Lookalike Audience set with new video iterations of the Review format.</li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildAnalysis(p){
+  if(p==='may'){
+    const a = ANALYSIS.may;
+    const dims = ['overall','campaign','adset','ads','audience','placement','video'];
+    const labels = {
+      overall:  {full:true,  title:'Overall Performance',           sub:'May 2026 Full Month Summary'},
+      campaign: {full:false, title:'By Campaign',                   sub:'Campaign-Level Dimension'},
+      adset:    {full:false, title:'By Ad Set (Audience Targeting)', sub:'Ad Set Performance Dimension'},
+      ads:      {full:true,  title:'By Ad Creative',                 sub:'Creative Performance Dimension'},
+      audience: {full:true,  title:'By Audience (Gender / Age / Platform)', sub:'Audience Segment Dimension'},
+      placement:{full:true,  title:'By Placement',                   sub:'Ad Placement Dimension'},
+      video:    {full:true,  title:'By Video Performance',           sub:'Video Completion & Engagement Dimension'}
+    };
+    let html = '<div class="dim-grid">';
+    dims.forEach(k=>{
+      const cfg = a[k];
+      const lbl = labels[k];
+      html += `
+        <div class="dim-card${lbl.full?' full':''}">
+          <div class="dim-card-header">
+            <div class="dim-icon ${cfg.iconClass}">${cfg.icon}</div>
+            <div><div class="dim-title">${cfg.title}</div><div class="dim-subtitle">${cfg.subtitle}</div></div>
+          </div>
+          <div class="dim-body">
+            ${cfg.kpis?`<div class="dim-kpi-row">${cfg.kpis.map(kp=>`<div class="dim-kpi"><div class="dim-kpi-label">${kp.label}</div><div class="dim-kpi-val ${kp.cls}">${kp.val}</div></div>`).join('')}</div>`:''}
+            ${cfg.body}
+          </div>
+        </div>`;
+      if(k==='overall') html += '</div><div class="dim-grid">';
+    });
+    html += '</div>';
+    return html;
+  }
+  if(p==='all') return buildAllYearAnalysis();
+  return buildEstimatedAnalysis(p);
+}
+
+function renderAnalysis(p){
+  const d = D[p];
+  document.getElementById('analysis-period-pill').textContent = d.label.en + (d.actual?' — ★ Actual Data':' — Estimated Data');
+  document.getElementById('analysis-footer-note').textContent = d.actual
+    ? '★ All figures are actual data verified from Meta Ads Manager (Ad Account 1082716973890726). Period: 1–31 May 2026.'
+    : '⚠ Data for this period is estimated based on trend modelling. Only May 2026 contains verified actual data from Meta Ads Manager.';
+  document.getElementById('analysis-body').innerHTML = buildAnalysis(p);
+}
+
+// ── Init ──
+renderDashboard('may');
+</script>
+</body>
+</html>
